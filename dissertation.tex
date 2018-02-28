@@ -1,0 +1,106 @@
+\documentclass[12pt,a4paper,twoside,openright]{report}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{verbatim}
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+                                        % more readable
+
+\begin{document}
+
+\bibliographystyle{plain}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% TITLE %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Tudor Mihai Avram}}
+
+\vspace*{60mm}
+\begin{center}
+	\Huge
+	\textbf{Machine learning graph filtering} \\[5mm]
+	Computer Science Tripos -- Part II \\[5mm]
+	Homerton College \\[5mm]
+	\today  % today's date
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% PROFORMA %%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{plain}
+
+\chapter*{Proforma}
+
+{\large
+	\begin{tabular}{ll}
+		Name:               & \bf Tudor Mihai Avram                     \\
+		College:            & \bf Homerton College                    \\
+		Project Title:      & \bf Machine learning graph filtering \\
+		Examination:        & \bf Computer Science Tripos -- Part II, July 2018  \\
+		Word Count:         & \bf 1\footnotemark[1] \\
+		Project Originator: & Dr Ripduman Sohan                   \\
+		Supervisor:         & Dr Lucian Carata                    \\ 
+	\end{tabular}
+}
+
+\footnotetext[1]{This word count was computed
+	by \texttt{detex dissertation.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}
+}
+
+\section*{Original aims of the project}
+\section*{Work completed}
+\section*{Special Difficulties}
+
+\newpage
+
+\section*{Declaration}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% TABLE OF CONTENTS %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% LIST OF FIGURES %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\listoffigures
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%  INTRODUCTION %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Introduction}
+
+This dissertation proposes an extension of the CADETS user interface (see \ref{1.1}) that 
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{graphics/overview}
+	\caption{Overview of the project architecture}
+	\label{fig:overview}
+\end{figure}
+
+\section{Overview of CADETS UI}  \label{1.1}
+overview blah
+\section{Licence} 
+The code is publicly available as an open-source project on GitHub[1], under an APACHE 2.0 licence[2]. 
+
+\footnotetext[1]{\textbf{\url{https://github.com/a96tudor/Part2Project}}}
+\footnotetext[2]{textbf{\url{https://www.apache.org/licenses/LICENSE-2.0}}}
+\end{document}
