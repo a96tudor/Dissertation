@@ -82,25 +82,43 @@
 \listoffigures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% LIST OF TABLES %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\listoftables
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%  INTRODUCTION %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Introduction}
 
-This dissertation proposes an extension of the CADETS user interface (see \ref{1.1}) that 
+This dissertation proposes an extension of the CADETS user interface (see \ref{1.1.1}) that uses Machine Learning methodologies to 
 
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{graphics/overview}
-	\caption{Overview of the project architecture}
-	\label{fig:overview}
-\end{figure}
-
-\section{Overview of CADETS UI}  \label{1.1}
+\section{Motivation}  \label{1.1}
 overview blah
-\section{Licence} 
-The code is publicly available as an open-source project on GitHub[1], under an APACHE 2.0 licence[2]. 
+\subsection{Overview of CADETS UI}\label{1.1.1}
+\section{Related work}
+Cyber security has always been a major concern in Computer Science, both in industry and in research. With the recent interest shown in Artificial Intelligence and Machine Learning, there has been an increasing number of tools that use related methodologies to identify malicious behaviour. This section will address some of these tools. 
 
-\footnotetext[1]{\textbf{\url{https://github.com/a96tudor/Part2Project}}}
-\footnotetext[2]{textbf{\url{https://www.apache.org/licenses/LICENSE-2.0}}}
+\subsection{Clearcut[1]}
+Clearcut[1] is an open source tool that uses Machine Learning techniques for incident detection. It takes HTTP proxy logs as input and filters them for manual review, in order to aid the analyst in reviewing them. 
+\\ \\ 
+The algorithm used in this case is Random Forrest Classification, which essentially means having multiple decision trees in training and returning the class corresponding to the mode of the classes returned by them. 
+
+\footnotetext[1]{\textbf{\url{https://github.com/DavidJBianco/Clearcut}}}
+
+\subsection{Polonium}
+Polonium is a scalable and effective technology that uses graph mining for malware detection. The tool uses a bipartite graph that consists of machines and files as its training data. It uses the Belief Propagation algorithm, which, at a high level, infers the label of a node from some prior knowledge about the node and from the node's neighbours. This is done through iterative message passing between all pairs of nodes $(u, v)$ in the graph. 
+\\ \\
+Although the problem statement is similar to that my project tries to address, the algorithm used here is not applicable in my case, because it requires a very large dataset (Polonium uses a graph with ~1 billion nodes). It also requires a pre-computed \textit{machine reputation} score that in this case is calculated using a proprietary formula of Symantec[1], the company that produced the tool. 
+
+\footnotetext[1]{\textbf{\url{https://www.symantec.com/}}}
+
+\section{Licence} 
+The code is publicly available as an open-source project on GitHub[2], under an APACHE 2.0 licence[3]. 
+
+
+\footnotetext[2]{\textbf{\url{https://github.com/a96tudor/Part2Project}}}
+\footnotetext[3]{\textbf{\url{https://www.apache.org/licenses/LICENSE-2.0}}}
 \end{document}
