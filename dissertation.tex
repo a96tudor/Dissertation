@@ -108,19 +108,21 @@ In order to provide the analyst with comprehensive data from which he can infer 
 	\caption{\bf Snapshot of CADETS UI}
 	\centering
 	\includegraphics[width=0.7\textwidth]{graphics/CADETS}
+	\label{Figure 1.1}
 \end{figure}
 
 \subsection{Aims of the project}
 In general, the number of nodes that are of interest to the analyst is significantly lower than the number of nodes that are not. Therefore, the aim of this project is to build a tool that would meliorate the analyst's experience by reducing the number of nodes he would have to cover. In order to achieve this, I will use a machine learning model that would classify nodes into nodes that are of interest and nodes that are not of interest, respectively. The training data used by this model is constructed based on a set of pre-defined ground-truths. 
 
 \section{Overview of the architecture}
-The communications between the CADETS user interface and the machine learning model is facilitated by a REST API. For performance purposes, it also uses a local cache of previous classifications. 
+The communications between the CADETS user interface and the machine learning model is facilitated by a REST API(as shown in Figure \ref{Figure 1.2}). For performance purposes, it also uses a local cache of previous classifications. 
 \\ \\ 
 When it receives a request from the client, the server would first check the local cache. If it can find the classification result for that node, then it just returns the cached value to the client.
 \begin{figure}[H]
 	\caption{\bf Overview of the project's architecture}
 	\centering
 	\includegraphics[width=0.8\textwidth]{graphics/overview}
+	\label{Figure 1.2}
 \end{figure}
 If the result is not in the cache or if the cached value expired, it runs the machine learning model in order to classify that specific node. Once the classification is done, the result is stored in the local cache and returned to the client. 
 
