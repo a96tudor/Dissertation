@@ -95,10 +95,24 @@
 
 This dissertation proposes an extension of the CADETS user interface (see \ref{1.1.1}). It uses Machine Learning techniques in order to filter a graph describing OS-level abstractions (i.e. to decide which nodes should be displayed to the analyst for further review). In order to achieve this, I implemented a number of different algorithms, in order to decide which would be applicable in this context. I also implemented one extensions: a server infrastructure that facilitates communications between the classifier and the client.
 
-\section{Motivation}  \label{1.1}
-Lorep Ipsum
+\section{Aims \& Motivation}  \label{1.1}
+Analysing event logs of a distributed system in order to identify actionable security information and hence to act accordingly in order to improve a system's security has always been a desirable goal for both research and industry. The availability of cheap data storage has facilitated such large scale logs collection, in the order of several terabytes of data. This makes manual log review an unfeasible task. 
+
 \subsection{Overview of CADETS UI}\label{1.1.1}
-Lorep Ipsum
+CADETS UI is a cybersecurity logs analysis tool developed as part of the CADETS and OPUS research projects. It displays logs as a network, emphasising the relationships between events. It is the analyst's task to explore this network in order to identify potentially malicious nodes.
+\\ \\
+In order to provide the analyst with comprehensive data from which he can infer useful information, the network will have a large number of nodes. This makes exploring the entire dataset a very difficult task for a human.  For example, tracing two machines for 7 minutes can produce as many as 6000 nodes in the network.  As the number of machines and the time interval we do tracing on increase, this number will become considerably larger, making analyst's job very difficult. 
+\begin{figure}[t!]
+	\caption{Snapshot of the CADETS UI}
+	\centering
+	\includegraphics[width=0.7\textwidth]{graphics/CADETS}
+\end{figure}
+
+\newpage
+
+\subsection{Aims of the project}
+The aim of this project is to build a tool that would meliorate the analyst's experience by reducing the number of nodes he would have to cover. In order to achieve this, I will use a machine learning model that would classify nodes into nodes that are of interest and nodes that are not of interest, respectively. The training data used by this model is constructed based on a set of pre-defined ground-truths. 
+
 \section{Related work}
 Cyber security has always been a major concern in Computer Science, both in industry and in research. With the recent interest shown in Artificial Intelligence and Machine Learning, there has been an increasing number of tools that use related methodologies to identify malicious behaviour. This section will address some of these tools. 
 
