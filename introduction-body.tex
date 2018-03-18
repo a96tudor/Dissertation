@@ -2,7 +2,7 @@
 	
 	\chapter{Introduction}
 	
-	This dissertation explores how machine learning techniques can be applied in order to visualize important parts of large graphs. This problem is particularly important for provenance graphs describing abstractions at the operating system level. When using such graphs for identifying potential attacks on systems, an analyst would need to sift through large and potentially irrelevant parts of the graph in search for suspicious activity. This project aims at providing a tool for helping the analyst in this task. To that end, I implemented a machine learning processing pipeline.  
+	This dissertation explores how machine learning techniques can be applied in order to visualize important parts of large graphs. This problem is particularly important for provenance graphs describing abstractions at the operating system level. When using such graphs for identifying potential attacks on systems, an analyst would need to sift through large and potentially irrelevant parts of the graph in search for suspicious activity. This project aims at providing a tool for helping the analyst in this task. To that end, I implemented a machine learning processing pipeline. On top of this classifier, I also implemented a server infrastructure that facilitates communication between the model and the client (see section \ref{1.2}). 
 	
 	\section{Aims \& Motivation}  \label{1.1}
 	Analysing event logs of a distributed system in order to identify actionable security information and hence to act accordingly in order to improve a system's security has always been a desirable goal for both research and industry. The availability of cheap data storage has facilitated such large scale logs collection, in the order of several terabytes of data. This makes manual log review an unfeasible task. 
@@ -12,28 +12,28 @@
 	\subsection{Overview of CADETS UI}\label{1.1.1}
 	The project at hand is essentially an extension of the CADETS user interface, a cybersecurity provenance analysis tool developed as part of the CADETS and OPUS research projects. It displays OS-level abstractions as a network, emphasising the relationships between actors(processes, users) and objects(files, sockets, pipes). It is the analyst's task to explore this network in order to identify potentially suspicious nodes (i.e. nodes describing activities done by an attacker). 
 	\\ \\
-	In order to provide the analyst with comprehensive data from which he can infer useful information, the network will have a large number of nodes. This makes exploring the entire dataset a very difficult task for a human.  For example, tracing two machines for 7 minutes can produce as many as 6000 nodes in the network.  As the number of machines and the time interval we do tracing on increase, this number will become considerably larger, making analyst's job very difficult. Therefore, manual reviewing this graphs presents a significant scalability issue. 
+	In order to provide the analyst with comprehensive data from which he can infer useful information, the network will have a large number of nodes. This makes exploring the entire dataset a very difficult task for a human.  For example, tracing two machines for 7 minutes can produce as many as 6,000 nodes in the network. As the number of machines and the time interval we do tracing on increase, this number will become considerably larger, presenting a significant scalability issue when it comes to manual reviewing. Therefore, it is imperative that we perform a filtering on these nodes in order to enhance the analyst's productivity.
 	\begin{figure}[H]
-		\caption{\bf Snapshot of CADETS UI}
 		\centering
 		\includegraphics[width=0.7\textwidth]{graphics/CADETS}
 		\label{Figure 1.1}
+		\caption{\bf Snapshot of CADETS UI}
 	\end{figure}
 	
 	\subsection{Aims of the project}
 	In general, the number of nodes that are of interest to the analyst is significantly lower than the number of nodes that are not. Therefore, the aim of this project is to asses the suitability of different machine learning algorithms that would significantly improve the analyst's experience by reducing the number of nodes he would have to manually inspect. 
 	
-	\section{Overview of the architecture}
+	\section{Overview of the architecture}\label{1.2}
 	The main component of the project is a supervised learning algorithm that classifies nodes from the graph as being of interest or not. The model is optimised on a labelled training set constructed based on a set of predefined ground-truths.
 	\\ \\
 	The communications between the CADETS user interface and the machine learning model is facilitated by a REST API(as shown in Figure \ref{Figure 1.2}). For performance purposes, it also uses a local cache of previous classifications. 
 	\\ \\ 
 	When it receives a request from the client, the server would first check the local cache. If it can find the classification result for that node, then it just returns the cached value to the client.
 	\begin{figure}[H]
-		\caption{\bf Overview of the project's architecture}
 		\centering
 		\includegraphics[width=0.8\textwidth]{graphics/overview}
 		\label{Figure 1.2}
+		\caption{\bf Overview of the project's architecture}
 	\end{figure}
 	
 	If the result is not in the cache or if the cached value expired, it runs the machine learning model in order to classify that specific node. Once the classification is done, the result is stored in the local cache and returned to the client. 
@@ -47,7 +47,7 @@
 	The algorithm used in this case is Random Forrest Classification, which essentially means having multiple decision trees in training and returning the class corresponding to the mode of the classes returned by them. 
 	\\ \\
 	Compared to Clearcut, the project described in this dissertation takes the inputs as a graph, thus taking into consideration the relationships between specific logs, as well. 
-\footnotetext[1]{\textbf{\url{https://github.com/DavidJBianco/Clearcut}}}
+	\footnotetext[1]{\textbf{\url{https://github.com/DavidJBianco/Clearcut}}}
 	
 	\subsection{Polonium}
 	Polonium is a scalable and effective technology that uses graph mining for malware detection. The tool uses a bipartite graph that consists of machines and files as its training data. It uses the Belief Propagation algorithm, which, at a high level, infers the label of a node from some prior knowledge about the node and from the node's neighbours. This is done through iterative message passing between all pairs of nodes $(u, v)$ in the graph. 
