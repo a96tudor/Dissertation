@@ -31,7 +31,15 @@
 		}
 	\end{figure}
 	A number of the edge types also use a \textit{state} field, in order to provide further information regarding the relationship between two nodes. For example, in the case of a \textit{PROC\_OBJ} edge connecting a File to a Process, the \textit{state} field is used to show whether the Process reads/ writes to the File or if the File is the binary the Process is executed from. \textit{PROC\_OBJ} edges also connect Processes to Sockets. Here, the \textit{state} field can take values such as: \textit{Server} (if the Process uses the Socket to accept new connections), \textit{Client} (if the Process uses to Socket to connect to a different Process that acts as a server - which may or may not be on a different machine)  and \textit{RaW} (if the Process also reads and writes through the Socket).
-	
+	\begin{figure}[H]
+		\centering
+		\label{Figure 2.1.3}
+		\includegraphics[width=0.7\textwidth]{graphics/node_degree_hist}
+		\caption{
+			Log-scale histogram showing the distribution of node degrees. 
+		}
+	\end{figure}
+	From 
 	\subsection{Ground truths}
 	In order to apply appropriate supervised learning algorithms, I had to build a labelled dataset of nodes from the raw data stored in graph format. This required setting a number of \textit{ground truths} of what a node of interest is. 
 	\\ \\
