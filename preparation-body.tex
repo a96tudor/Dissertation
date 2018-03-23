@@ -2,7 +2,7 @@
 	\chapter{Preparation}
 	In this chapter, I will explain all the work completed before any code was written. This includes a discussion on the structure of the data and the decisions made for pre-processing it (section \ref{2.1}), the theory behind the models that were implemented (section \ref{2.2}) and an outline of the server architecture (section \ref{2.3}) as well as the requirements analysis and software engineering principles applied for a successful implementation(section \ref{2.4}).
 	
-	\section{Data analysis} \label{2.1}
+	\section{Data analysis} \label{Section 2.1}
 	This section describes the raw data used by the CADETS user interface and how it is preprocessed in order to be used by the machine learning models described in section \ref{2.2}.
 	\\ \\
 	The data used by the CADETS UI is stored in a Neo4J\footnotemark[1] graph database. This gives a simple and straightforward representation of the OS-level abstractions we want to store as well as of their relationships.
@@ -18,7 +18,7 @@
 		\label{Figure 2.1.1}
 		\includegraphics[width=0.7\textwidth]{graphics/node-freq-graph}
 		\caption[\textbf{Log-scale node frequency}]{
-			Bar chart above showing the log-scale node frequency in a database of $1,402,053$ nodes. 
+			Bar chart above showing the log-scale node frequency in a database of $1,402,053$ nodes and $2,090,741$ edges. 
 		}
 	\end{figure}
 	Relationships between nodes are illustrated by different types of edges. Some edges also illustrate how an object (File, Socket, etc.) evolves over time. This is done using the \textit{GLOB\_OBJ\_PREV} edge and helps us to easily visualize the different versions of an object.
@@ -35,11 +35,13 @@
 		\centering
 		\label{Figure 2.1.3}
 		\includegraphics[width=0.7\textwidth]{graphics/node_degree_hist}
-		\caption{
-			Log-scale histogram showing the distribution of node degrees. 
+		\caption[Log-scale distribution of node degrees]{
+			Log-scale histogram showing the distribution of node degrees, using the same graph as the one from Figure \ref{Figure 2.1.1} as source(i.e. $1,402,053$ nodes and $2,090,741$ edges).
 		}
 	\end{figure}
-	From 
+	 
+	 The graphs resulting from tracing are very sparse, with a number of edges almost equal to the number of nodes. This observation is also sustained by the histogram in Figure \ref{Figure 2.1.3}, where we can observe that most of the nodes have degrees between 0 and 10, while there also are a few nodes with a very high degree (up to $60, 000$).
+	 
 	\subsection{Ground truths}
 	In order to apply appropriate supervised learning algorithms, I had to build a labelled dataset of nodes from the raw data stored in graph format. This required setting a number of \textit{ground truths} of what a node of interest is. 
 	\\ \\
@@ -72,10 +74,46 @@
 		\item \textbf{Processes that writes to files in suspicious locations: }Here, I define the term of \textit{suspicious location} as being a location that is essential to the running of the system. These locations include:  \textit{/bin, /etc, /lib, /usr/bin, /usr/lib, /boot, /root, /dev, /etc/pwd}.
 	\end{enumerate}
 	\subsection{Data preprocessing}
-	\subsubsection{Feature vectors}
-	\section{Machine learning models} \label{2.2}
+	The implemented machine learning models only look at 3 of the 6 types of nodes: \textbf{File}, \textbf{Process} and \textbf{Socket} nodes. 
+	\\ \\
+	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. Furthermore, for graph-specific models (such as Graph Attention Networks, described in section \ref{Section 2.2.4})  I also built the adjacency matrix of the given graph. 
+	\\ \\
+	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node that with the closest timestamp to it. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it.
+		
+	\begin{table}[!htbp]
+		\centering
+	\begin{tabular}{ |p{2.5cm}||p{3.2cm}|p{3.2cm}|p{2.7cm}|p{2.5cm}|}
+		\hline
+		\multirow{2}{3cm}{\textbf{Feature}} & \multicolumn{3}{|c|}{\textbf{Explanation}} & \multirow{2}{2cm}{Type}\\
+		& Process & Socket & File &\\
+		\hline
+		\textit{Node type} & \multicolumn{3}{|c|}{The type of node used in this case (i.e. Process, Socket or File)} & \textbf{Categorical} \\
+		\hline
+		\textit{Neighbour type} & The closest node connected to it. Has to be one of File and Process & 
+		\multicolumn{2}{|c|}{Will always be Process} & \textbf{Categorical}\\
+		\hline
+		\textit{Edge type} & \multicolumn{3}{|p{11cm}|}{The type of edge connecting the node to the neighbour. It will always be a $PROC\_OBJ$ edge, but the \textit{state} field can take multiple values, such as:  \textit{READ, WRITE, RaW, BIN, SERVER, CLIENT, NONE}.} & \textbf{Categorical}\\
+		\hline
+		\textit{Connected} & Whether the Process in question connects to a different machine via a Socket. & Whether the Sockets connects to an IP address other than 127.0.0.1 & Whether the File was downloaded from the web or not & \textbf{Binary} \\
+		\hline
+		\textit{Neighbour connected} & 
+	\end{tabular}
+	\end{table}
+
+
+	\section{Machine learning models} \label{Section 2.2}
 	
-	\section{API architecture} \label{2.3}
+	\subsection{Baseline}	\label{Section 2.2.1}
 	
-	\section{Requirements analysis} \label{2.4}
+	\subsection{Multi-perceptron model} \label{Section 2.2.2}
+	
+	\subsection{Convolutional Neural Network} \label{Section 2.2.3}
+		
+	\subsection{Graph Attention Network}	\label{Section 2.2.4}
+		
+	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
+	
+	\section{API architecture} \label{Section 2.3}
+	
+	\section{Requirements analysis} \label{Section 2.4}
 \end{document}
