@@ -240,3 +240,6 @@ graphics/*.pdf
 graphics/*.aux
 graphics/*.log
 graphics/*.gz
+
+*.pdf
+
