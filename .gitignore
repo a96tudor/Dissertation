@@ -234,6 +234,7 @@ preparation-body.pdf
 implementation-body.pdf
 evaluation-body.pdf
 conclusion-body.pdf
+*.pdf
 
 document.pdf
 graphics/*.pdf
