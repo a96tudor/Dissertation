@@ -147,6 +147,7 @@
 	
 	\subsubsection{Artificial neuron}	\label{Section 2.2.2.1}
 	
+	
 	An artificial neuron (as shown in Figure \ref{Figure 2.5}) computes a linear combination of the input features and applies an activation function $\sigma: \mathbb{R} \rightarrow \mathbb{R}$ to it.  The output of the neuron will be: 
 	
 	\begin{equation}
@@ -215,19 +216,71 @@
 
 	Generally, steeper gradients such as the ones of ReLU and LReLU will cause the optimisation algorithm to converge faster to a solution.
  	
+	
+	
+	
 	\subsubsection{Multilayer perceptron}  \label{Section 2.2.2.2}
-
+	Neural network architectures consist of multiple interconnected artificial neurons in order to infer complex functions. The mutilayer perceptron (MLP) represents a class of feedforward artificial neural networks (ANN) where the neurons are arranged in three or more layers (as shown in Figure \ref{Figure 2.7}).  MLPs are \textbf{fully connected}; that is each neuron in one layer connects to every neuron in the following layer with a certain weight $w_{i, j}$. 
+	
 	\begin{figure}[H]
 		\centering
-		
 		\includegraphics[width=0.7\textwidth]{graphics/nns/multilayer}
 		\caption[Multilayer perceptron]{
 			Figure showing a 2-layer neural network.
 		}
 		\label{Figure 2.7}	
 	\end{figure}	
-
-	\subsection{Convolutional Neural Network} 
+	
+	As shown by Cybenko's theorem, MLPs are universal function approximators, so that they can be used to create mathematical models by regression analysis. Considering the fact that classification is a particular case of regression where the response variable is categorical, we can infer that MLPs make good classifier algorithms. 
+	\\ \\
+	Suppose the MLP has to learn to classify a feature vector $\mathbf{x} \in \mathbb{R}^n$ into a class $C_t$ from $\mathcal{C} = \{C_1\dots C_k\}$. In this case, we want the $t^{th}$ output neuron (i.e. $o_t$) to indicate this. A popular choice for this task is the \textbf{sigmoid function}, which transforms any k-dimensional vector $\mathbf{o}$ to the probability distribution:
+	\begin{equation}
+		\centering
+		sigmoid(\mathbf{o})_i = \frac{e^{o_i}}{\sum_{j=1}^{k}e^{o_j}}
+	\end{equation}
+	where: $\mathbf{o}^T = [o_1\dots o_k]$ is the vector of the output neurons. Thus, the probability of the input vector $\mathbf{x}$ being in class $C_t$ is given by:
+	\begin{equation}
+		\centering
+		\mathbb{P}(y = C_t | \mathbf{x}) = sigmoid(\mathbf{o})_t = \frac{e^{o_t}}{\sum_{j=1}^{k}e^{o_j}}
+		\label{Eq 2.8}
+	\end{equation} 
+	
+	If we consider the hidden layer from Figure \ref{Figure 2.7} to use the ReLU activation function, we can re-write the equation \ref{Eq 2.8} in vector format as follows: 
+	\begin{equation}
+		\centering
+		\mathbb{P}(y=C_t | \mathbf{x}) = \frac
+		{
+			\exp (\mathbf{W_2}\text{ReLU}(\mathbf{W_1 x} + \mathbf{b_1}) + \mathbf{b_2})_t
+		}
+		{
+			{\sum_{j=1}^{k}\exp (\mathbf{W_2}\text{ReLU}(\mathbf{W_1 x} + \mathbf{b_1}) + \mathbf{b_2})_j}
+		} 
+	\end{equation}
+	
+	where $\mathbf{x}$ is the input feature vector.
+	
+	\subsubsection{Training the neural network} \label{2.2.2.4}
+	The first step in training a neural network is initialising the weights and biases vectors: $\mathbf{w}$ and $\mathbf{b}$. How these vectors are initiated is usually dependent on the architecture. 
+	\\ \\
+	For a classification problem, each optimisation algorithm makes use of a training examples $\mathbf{s}=(\mathbf{X}, \mathbf{Y})$. Here, $\mathbf{X} = [\mathbf{x_1}\dots\mathbf{x_m}]$ is the matrix of training feature vectors, where $\mathbf{x_i}\in\mathbb{R}^n. \forall i \in \{1\dots m\}$ and $\mathbf{Y} = [\mathbf{y_1}\dots\mathbf{y_m}]$ is the matrix representing the corresponding class for every input feature vector, using one-hot encoding. For an input vector $\mathbf{x_i}$ in class $C_t$, the corresponding $\mathbf{y_i}$ will be:
+	\begin{equation}
+		\centering
+		\mathbf{y_i}^T = [y_{i, 1}\dots y_{i, k}]
+	\end{equation} 
+	where:
+	\begin{equation}
+		\centering
+		y_{i, j} = 
+		\begin{cases}
+			1 & \text{if } j = t \\
+			0 & \text{otherwise}
+		\end{cases}
+	\end{equation}
+	\\ \\
+	One of the most frequently encountered optimisation algorithms is \textbf{mini-batch gradient descent}, a variation of the gradient descent algorithm that splits the training dataset into small batches that are used to calculate model error and update model coefficients. 
+	\\ \\
+	
+	\subsection{Convolutional Neural Networks} 
 		
 	\subsection{Graph Attention Network}	
 		
