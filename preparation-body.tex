@@ -79,9 +79,12 @@
 	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. Furthermore, for graph-specific models (such as Graph Attention Networks, described in section \ref{Section 2.2.4})  I also built the adjacency matrix of the given graph. 
 	\\ \\
 	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node that with the closest timestamp to it. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it.
-		
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%% FEATURES TABLE %%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
 	\begin{longtable}{| p{.12\textwidth} || p{.22\textwidth} | p{.22\textwidth} | p{.22\textwidth} | p{.15\textwidth} |}
-
 		\hline
 		\multirow{2}{3cm}{\textbf{Feature}} & \multicolumn{3}{c|}{\textbf{Explanation}} & \multirow{2}{2cm}{\textbf{Type}}\\
 		& Process & Socket & File &\\
@@ -124,20 +127,111 @@
 			where $\Delta t = abs(node.timestamp - neighbour.timestamp)$ 
 		} } & \textbf{Real} \\
 	\hline
+	\caption[Features table]{\centering Table listing and explaining the meaning of the features that are extracted for every node.}
 	\end{longtable}
 
 
 	\section{Machine learning models} \label{Section 2.2}
 	
-	\subsection{Baseline}	\label{Section 2.2.1}
+	This section describes the underlying theory of the machine learning models explored as part of this project. 
+
+	\subsection{Supervised learning} \label{Section 2.2.1}
+	In supervised learning, classification models require la labelled training set, where each feature vector $\mathbf{x} \in \mathbb{R}^n$ has an associated label $y$, which represents one of the possible output classes $\mathcal{C} = \{ C_1, C_2 \dots C_k \}$.
 	
-	\subsection{Multi-perceptron model} \label{Section 2.2.2}
+	\subsection{Supervised learning using neural networks} \label{Section 2.2.2}
+	Given a training sequence $\mathbf{s} = [(\mathbf{x_1}, y_1), (\mathbf{x_2}, y_2) \dots (\mathbf{x_m}, y_m)]$, a neural network learns a hypothesis $h: \mathbb{R}^n \rightarrow \mathcal{C}$ that maps an input feature vector $\mathbf{x}$ to its corresponding label $y$. 
+	\\ \\
+	The hypothesis is set as $h(\mathbf{x}) = f(\mathbf{x}; \mathbf{w}, \mathbf{b})$, where $f$ is a function dependent on the neural network architecture and $\mathbf{w}$ and $\mathbf{b}$ are the weights and biases, respectively. 
+	\\ \\
+	A \textbf{loss function} is usually defined to measure some notion of the neural network's error when estimating $y$ from $\mathbf{x}$, given $\mathbf{w}$ and $\mathbf{b}$. The training step involves an optimisation algorithm which aims at finding $\mathbf{w}$ and $\mathbf{b}$ such that the loss function is minimized. 
 	
-	\subsection{Convolutional Neural Network} \label{Section 2.2.3}
+	\subsubsection{Artificial neuron}	\label{Section 2.2.2.1}
+	
+	An artificial neuron (as shown in Figure \ref{Figure 2.5}) computes a linear combination of the input features and applies an activation function $\sigma: \mathbb{R} \rightarrow \mathbb{R}$ to it.  The output of the neuron will be: 
+	
+	\begin{equation}
+		y = \sigma(b + \sum_{i=1}^{n} w_i x_i) = \sigma(b + \mathbf{w}^T\mathbf{x})
+	\end{equation}
+	
+	where $\mathbf{x}^T = [x_1 x_2 \dots x_n]$ is the input feature vector, $\mathbf{w}^T = [w_1 w_2 \dots w_n]$ is the vector of weights and b is the bias. 
+	
+	\begin{figure}[H]
+		\centering
+
+		\includegraphics[width=0.7\textwidth]{graphics/nns/single_neuron}
+		\caption[\textbf{Artificial neuron}]{
+			Figure showing a single artificial neuron. 
+		}
+		\label{Figure 2.5}
+	\end{figure}
+	
+	The main purpose of the activation function is to map the results of the linear combination of the input features onto a desired (finite) range. It is desirable for the activation function to be continuously differentiable for enabling gradient-based optimisation methods. Some frequently encountered activations functions are:
+	\begin{enumerate}
+		\item the \textbf{linear function}
+					\begin{equation}
+						\sigma(x) = cx 
+					\end{equation}
+				where $c \in \mathbb{R}$ is a constant. 
 		
-	\subsection{Graph Attention Network}	\label{Section 2.2.4}
+		\item the \textbf{sigmoid function}
+					\begin{equation}
+						\sigma(x) = \frac{1}{1+e^{-x}}
+ 					\end{equation}
+ 					
+	 	\item the \textbf{tanh function}
+				 	\begin{equation}
+					 	\sigma(x) = \tanh(x) = \frac{2}{1+e^{-2x}} - 1
+				 	\end{equation}
+					Essentially, the $\tanh$ function is a scaled sigmoid function. It can be re-written as: $\tanh(x) = 2 \times \text{sigmoid}(2x) - 1$ 
+					
+		\item the \textbf{rectified linear unit (ReLU) function}
+					\begin{equation}
+						\sigma(x) = 
+							\begin{cases}
+								0 & \text{if } x < 0 \\
+								x & \text{if } x \geq 0
+							\end{cases}
+					\end{equation}
 		
-	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
+		\item the \textbf{leaky rectified linear unit (LReLU) function}
+					\begin{equation}
+						\sigma(x) = 
+						\begin{cases}
+							0.001x & \text{if } x < 0 \\
+							x & \text{if } x \geq 0
+					\end{cases}
+					\end{equation}
+	\end{enumerate} 
+ 
+	Even though the hyperbolic tangent function ($\tanh$) function used to be the typical choice in neural networks, recent work has shown improvement with the ReLU function. This happens because sigmoidal neural networks can suffer from the \textit{vanishing gradient} problem. These occur when lower layers of the neural network have gradients of nearly 0 because higher layer units are already saturated at $-1$ or $1$, the asymptotes of the $\tanh$ function. Moreover, the LReLU function has a non-zero gradient over its entire domain, unlike the standard ReLU function. Figure \ref{Figure 2.6} shows these three activation functions and their derivatives.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\textwidth]{graphics/nns/activations}
+		
+		\caption[Activation functions]{The $\tanh$, ReLU and LReLU functions and their derivatives}
+		\label{Figure 2.6}
+	\end{figure}
+
+	Generally, steeper gradients such as the ones of ReLU and LReLU will cause the optimisation algorithm to converge faster to a solution.
+ 	
+	\subsubsection{Multilayer perceptron}  \label{Section 2.2.2.2}
+
+	\begin{figure}[H]
+		\centering
+		
+		\includegraphics[width=0.7\textwidth]{graphics/nns/multilayer}
+		\caption[Multilayer perceptron]{
+			Figure showing a 2-layer neural network.
+		}
+		\label{Figure 2.7}	
+	\end{figure}	
+
+	\subsection{Convolutional Neural Network} 
+		
+	\subsection{Graph Attention Network}	
+		
+	\subsection{Non-parametric techniques}	
 	
 	\section{API architecture} \label{Section 2.3}
 	

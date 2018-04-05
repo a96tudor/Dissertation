@@ -243,3 +243,7 @@ graphics/*.gz
 
 *.pdf
 
+graphics/nns/*.pdf
+graphics/nns/*.aux
+graphics/nns/*.log
+graphics/nns/*.gz
