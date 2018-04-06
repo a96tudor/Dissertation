@@ -259,7 +259,7 @@
 	
 	where $\mathbf{x}$ is the input feature vector.
 	
-	\subsubsection{Training the neural network} \label{2.2.2.4}
+	\subsubsection{Training the neural network} \label{Section 2.2.2.3}
 	The first step in training a neural network is initialising the weights and biases vectors: $\mathbf{w}$ and $\mathbf{b}$. How these vectors are initiated is usually dependent on the architecture. 
 	\\ \\
 	For a classification problem, each optimisation algorithm makes use of a training examples $\mathbf{s}=(\mathbf{X}, \mathbf{Y})$. Here, $\mathbf{X} = [\mathbf{x_1}\dots\mathbf{x_m}]$ is the matrix of training feature vectors, where $\mathbf{x_i}\in\mathbb{R}^n. \forall i \in \{1\dots m\}$ and $\mathbf{Y} = [\mathbf{y_1}\dots\mathbf{y_m}]$ is the matrix representing the corresponding class for every input feature vector, using one-hot encoding. For an input vector $\mathbf{x_i}$ in class $C_t$, the corresponding $\mathbf{y_i}$ will be:
@@ -276,16 +276,106 @@
 			0 & \text{otherwise}
 		\end{cases}
 	\end{equation}
+	One of the most frequently encountered optimisation algorithms is \textbf{gradient descent}, an iterative algorithm that finds the optimal weights and biases by minimizing a given loss function $\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b})$. The choice of the loss function depends on the network infrastructure and the problem it is trying to solve. One of the most popular loss functions for classification problems is \textbf{cross-entropy}. It computes the difference between the true output distribution $\mathbf{y}_i$ and the neural network output distribution $\mathbf{\hat{y}}_i$, respectively:
+	\begin{equation}
+		\centering
+		\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b}) = -\sum_{j=1}^{k}y_{i,j}\log(\hat{y}_{i,j})
+	\end{equation}
+	The gradient descent algorithm then updates the weights and biases as follows: 
+	\begin{equation}
+		\centering
+		\mathbf{w}_{t+1} \leftarrow \mathbf{w}_t - \alpha \sum_{i=1}^{m}\frac{\partial \mathfrak{L}}{\partial \mathbf{w}}\Bigr|_{\substack{\mathbf{w}_t}}
+		\label{Eq 2.13}
+ 	\end{equation}
+ 	\begin{equation}
+	 	\centering
+	 	\mathbf{b}_{t+1} \leftarrow \mathbf{b}_t - \alpha \sum_{i=1}^{m}\frac{\partial \mathfrak{L}}{\partial \mathbf{b}}\Bigr|_{\substack{\mathbf{b}_t}}
+	 	\label{Eq 2.14}
+ 	\end{equation}
+ 	where $\mathbf{w}_t$ and $\mathbf{b}_t$ are the weights and biases at iteration t, $\mathfrak{L} = \mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}_t, \mathbf{b}_t)$ and $\alpha$ is the learning rate - a hyperparameter that decides the amount by which the direction of the gradient is followed at each iteration. The value of the learning rate impacts the behaviour of the optimisation algorithm. A high learning rate might cause the algorithm to never reach the minimum of the loss function. The lower it is, the slower we travel along the downwards slope of the loss function. Even though this ensures the fact that we don't miss any local minima, it can also mean that the algorithm will take a long time to converge - especially if it gets stuck on a plateau region. 
 	\\ \\
-	One of the most frequently encountered optimisation algorithms is \textbf{mini-batch gradient descent}, a variation of the gradient descent algorithm that splits the training dataset into small batches that are used to calculate model error and update model coefficients. 
-	\\ \\
+	\textbf{Backpropagation} is the technique used to compute the gradient of the loss function with respect with the weights $\mathbf{w}$ and biases $\mathbf{b}$. The overall algorithm has two phases:
+	\begin{itemize}
+		\item Phase 1: \textbf{Propagation}
+		\begin{enumerate}
+			\item Propagate every training example $\mathbf{x}_i$ through the network to generate the output values $\mathbf{\hat{y}}_i$.
+			\item Calculate the loss function $\mathfrak{L}$.
+			\item Backpropagate the output activations back through the network using the training pattern in order to generate the gradients of all output and hidden neurons.
+		\end{enumerate}
+		\item Phase 2: \textbf{Weights and biases updating}, using the equations \ref{Eq 2.13} and \ref{Eq 2.14}
+	\end{itemize}
+	\textbf{Mini-batch gradient descent} is a variation of gradient descent that splits the training set into small batches $\mathfrak{B}=\{(\mathbf{x}_1, \mathbf{y}_1)\dots(\mathbf{x}_l, \mathbf{y}_l)\}$. Each batch $\mathfrak{B}$ is used to calculate the loss function and update model coefficients. The coefficients update frequency is higher than classical gradient descent which allows for a more robust convergence, avoiding local minima. 
 	
 	\subsection{Convolutional Neural Networks} 
 		
 	\subsection{Graph Attention Network}	
 		
 	\subsection{Non-parametric techniques}	
+	Parametric machine learning techniques, such as neural networks, treat supervised learning under the assumption that the forms of the underlying density functions were known. In practice, though, the common parametric forms rarely fit the densities actually encountered in practice. 
+	\\ \\
+	This section examines \textbf{nonparametric} procedures that can be used with arbitrary distributions and without the assumption that the forms of the underlying densities are known. There are several types of nonparametric methods that can be applied to pattern recognition and classification. In this section, I describe methods for estimating an unknown probability density function. The most fundamental techniques rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
+	\begin{equation}
+		\centering
+		P = \int_{\mathfrak{R}} p(\mathbf{x'}) d\mathbf{x'}
+	\end{equation}
+	Thus, $P$ is a smoothed version of the density function $p(\mathbf{x})$. Suppose that $m$ samples $\mathbf{x}_1,\dots ,\mathbf{x}_n$ are drawn independently and identically distributed (i.i.d.) accordingly to the probability law $p(\mathbf{x})$. The probability that $k$ of these $m$ fall in $\mathfrak{R}$ is given by the binomial law:
+	\begin{equation}
+		P_k = {n\choose k} P^k (1-P)^{n-k}
+	\end{equation}
+	and the expected value for $k$ is: $\mathbb{E}(k) = nP$. Moreover, this distribution for $k$ peaks about the mean so we expect that $\frac{k}{n}$ will be a very good estimate for the probability $P$. This is especially accurate for a very large $m$. 
+	\\ \\
+	Assuming $p(\mathbf{x})$ is continuous and the region $\mathfrak{R}$ is so small that $p$ does not vary appreciably with it, we can write:
+	\begin{equation}
+		 \begin{split}
+p(\mathbf{x}) &\approx \frac{P}{V} \\
+&\approx \frac{k / n}{V}
+\end{split}	
+	\label{Eq-np 1}
+	\end{equation}
+	where $\mathbf{x}$ is a point in $\mathfrak{R}$ and $V$ is the volume of the region $\mathfrak{R}$.
+	\\ \\
+	The equation \ref{Eq-np 1} behaves poorly when the volume $V$ approaches 0. Therefore, we want to estimate the density of $\mathbf{x}$ instead. We can do it iteratively by from a sequence of regions $\mathfrak{R}_1, \mathfrak{R}_2, \dots$, each containing $\mathbf{x}$ and every region $\mathfrak{R}_n$ being used with $n$ samples. Let $V_n$ be the volume of $\mathfrak{R}_n$, $k_n$ be the number of samples falling in $\mathfrak{R}_n$ and $p_n(\mathbf{x})$ the $n^\text{th}$ estimate for $p(\mathbf{x})$:
+	\begin{equation}
+		p_n(\mathbf{x}) = \frac{k_n/n}{V_n}
+		\label{Eq-np 2}
+	\end{equation}
 	
+	\subsubsection{Parzen windows}
+	This section describes the Parzen-window approach to estimating densities. It assumes that the region $\mathfrak{R}_n$ is a d-dimensional hypercube, where $h_n$ is the length of an edge. Then, we can estimate the volume $V_n = h_n^d$. Let $\varphi$ be the window function:
+	\begin{equation}
+		\varphi(\mathbf{u}) = \begin{cases}
+											 1 & |u_j| \leq \frac{1}{2}, \forall j \in \{1\dots d\} \\
+											 0 & \text{otherwise}
+									   	\end{cases}
+	\end{equation}
+	Thus, $\varphi(\mathbf{u})$ defines a unit hypercube centered at origin. It follows that $\varphi(\frac{\mathbf{x} - \mathbf{x}_i}{h_n})$ is equal to $1$ if $\mathbf{x}_i$ falls in hypercube of volume $V_n$, centered at $\mathbf{x}$ and $0$ otherwise. Therefore, the number of samples in this hypercube $k_n$ is given by:
+	\begin{equation}
+		k_n = \sum_{i=1}^{n} \varphi \bigg(\frac{\mathbf{x} - \mathbf{x}_i}{h_n}\bigg)
+	\end{equation}
+	By fitting this into equation \ref{Eq-np 2}, we can obtain the $n^{\text{th}}$ estimate of the probability distribution function $p_n(\mathbf{x})$: 
+	\begin{equation}
+		p_n(\mathbf{x}) = \frac{1}{n} \sum_{i=1}^{n} \frac{1}{V_n} \varphi \bigg( \frac{\mathbf{x} - \mathbf{x}_i}{h_n} \bigg)
+		\label{Eq-np 3}
+ 	\end{equation} 
+ 	In the general case, we want to allow more general window functions rather than limiting ourselves to a hypercube unit function. In such a case, the equation \ref{Eq-np 3} expresses our estimate of $p(\mathbf{x})$ as an average of functions of $\mathbf{x}$ and the samples $\mathbf{x}_i$. In essence, the window function is being used for \textit{interpolation} - each sample contributing to the estimate in accordance to the distance from $\mathbf{x}$.
+ 	
+ 	\subsubsection{Probabilistic Neural Networks}
+ 	Probabilistic Neural Networks (PNNs) are classifiers based on Parzen windows. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class in $\mathcal{C}$. 
+
+  	\begin{figure}[H]
+ 		\centering
+ 		\includegraphics[width=.7\textwidth]{graphics/nns/pnn}
+ 		\caption{PNN architecture}
+ 		\label{Fig 2.8}
+ 	\end{figure}
+	 
+	 Figure \ref{Fig 2.8} shows a general-purpose PNN architecture that can be used for classification. It consists of $n$ in put units, $m$ pattern units and $k$ output units. Each pattern unit forms the inner product of its weight vector $\mathbf{w}$ and the normalized pattern vector $\mathbf{x}$ and outputs $\exp(\frac{\mathbf{w}^T\mathbf{x} - 1}{\sigma^2})$. Each category unit sums up the outputs of the pattern units connected to it. This insures that the activity in each of the category units represents the Parzen-window density estimate using a circular symmetric Gaussian window of covariance $\sigma^2\mathbf{I}$, where $\mathbf{I}$ is the $n\times n$ identity matrix. $\sigma$ is a parameter set by the user and is equal to $\sqrt{2}$ times the width of the effective Gaussian window
+     \\ \\ 
+	 The weights of the $p^\text{th}$ pattern unit are set as $\mathbf{w}_p = \mathbf{x}_p$, $\forall p \in \{ 1,2,\dots ,m \}$, where $\mathbf{x}_p$ is the normalised $p^\text{th}$ pattern from the training set. In order to classify the a new normalized pattern $\mathbf{x}$ we first have to propagate the it through the network. Then, the resulting class will be $C_t$, where:
+	 \begin{equation}
+		 t = \argmax_i c_i(\mathbf{x}). \forall i \in \{1,\dots k\}
+	 \end{equation}
+	 and $c_i(\mathbf{x})$ is the output of the $i^\text{th}$ category unit.
 	\section{API architecture} \label{Section 2.3}
 	
 	\section{Requirements analysis} \label{Section 2.4}
