@@ -240,3 +240,10 @@ graphics/*.pdf
 graphics/*.aux
 graphics/*.log
 graphics/*.gz
+
+*.pdf
+
+graphics/nns/*.pdf
+graphics/nns/*.aux
+graphics/nns/*.log
+graphics/nns/*.gz

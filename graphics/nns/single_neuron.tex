@@ -1,0 +1,50 @@
+\documentclass[12pt,letterpaper]{standalone}
+\usepackage{pgf, tikz}
+\usetikzlibrary{arrows, automata}
+\usepackage{mwe} % For dummy images 
+\usetikzlibrary{positioning}
+\usepackage{amsmath}
+\usetikzlibrary{shapes, calc, shapes, arrows}
+
+\begin{document}
+	\tikzstyle{inputNode}=[draw,circle,minimum size=10pt,inner sep=0pt]
+	\tikzstyle{stateTransition}=[->, thick]
+	\begin{tikzpicture} 
+	
+	\node[draw, circle, minimum size=15pt, inner sep=0pt] (b) at (0, 2) {$b$};
+	
+	\node[draw,circle,minimum size=25pt,inner sep=0pt] (x) at (0,0) {$\Sigma$ $\sigma$};
+	
+	\node (res) at (5, 0) {}; 
+	
+	\node (d1) at (0, 2.5) {Bias};
+	\node (d2) at (-3.5, -0.3) {Input};
+	\node (d3) at (-3.5, -0.6) {features};
+	
+	\node[inputNode] (x1) at (-2, 1) {$\tiny x_1$};
+	\node[inputNode] (x2) at (-2, 0) {$\tiny x_2$};
+	\node[inputNode] (x3) at (-2, -1) {$\tiny x_3$};
+	\node[inputNode] (xn) at (-2, -2.5) {$\tiny x_n$};
+	
+	\path[stateTransition] (x1) edge node[sloped, above, pos=.5] {$w_1$} (x);
+	\path[stateTransition] (x2) edge node[sloped, above, pos=.5] {$w_2$} (x);
+	\path[stateTransition] (x3) edge node[sloped, above, pos=.5] {$w_3$} (x);
+	\path[stateTransition] (xn) edge node[sloped, above] {$w_n$} (x);
+	\path[stateTransition] (b) edge node {} (x);
+	
+	\path[stateTransition] (x) edge node[above, pos=.5] 
+			{
+				$y = \sigma (b + \sum_{i=1}^{n}x_i w_i )$
+			} node[below] {Ouput} (res);
+	
+	%\draw[stateTransition] (x0) to[out=0,in=120] node [midway, sloped, above=-2] {$w_0$} (x);
+	%\draw[stateTransition] (x1) to[out=0,in=150] node [midway, sloped, above=-2] {$w_1$} (x);
+	%\draw[stateTransition] (x2) to[out=0,in=180] node [midway, sloped, above=-2] {$w_2$} (x);
+	%\draw[stateTransition] (x3) to[out=0,in=210] node [midway, sloped, above=-2] {$w_3$} (x);
+	%\draw[stateTransition] (xn) to[out=0,in=240] node [midway, sloped, above=-2] {$w_n$} (x);
+	%\draw[stateTransition] (x) -- (2,0) node [midway,above=-0.1cm] {};
+	\draw[dashed] (0,-0.43) -- (0,0.43);
+	\node (dots) at (-2, -1.6) {$\vdots$};
+	\end{tikzpicture}
+
+\end{document}
