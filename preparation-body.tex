@@ -132,7 +132,6 @@
 
 
 	\section{Machine learning models} \label{Section 2.2}
-	
 	This section describes the underlying theory of the machine learning models explored as part of this project. 
 
 	\subsection{Supervised learning} \label{Section 2.2.1}
@@ -326,7 +325,7 @@
 		\mathbf{h'}_i = \sigma \Bigg( \sum_{j \in \mathcal{N}_i} \alpha_{i,j} \mathbf{W} \mathbf{h}_j \Bigg) 
 	\end{equation}
 	where $\alpha$ is a nonlinear activation function. 
-	\subsection{Non-parametric techniques}	
+	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
 	Parametric machine learning techniques, such as neural networks, treat supervised learning under the assumption that the forms of the underlying density functions were known. In practice, though, the common parametric forms rarely fit the densities actually encountered in practice. 
 	\\ \\
 	This section examines \textbf{nonparametric} procedures that can be used with arbitrary distributions and without the assumption that the forms of the underlying densities are known. There are several types of nonparametric methods that can be applied to pattern recognition and classification. In this section, I describe methods for estimating an unknown probability density function. The most fundamental techniques rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
@@ -393,9 +392,13 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 	 \end{equation}
 	 and $c_i(\mathbf{x})$ is the output of the $i^\text{th}$ category unit.
 	\section{API architecture} \label{Section 2.3}
-	
+	Once I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
+	\\ \\
+	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and are do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the different layers involved in a REST APIs' architecture make it highly modular and scalable. 
+	\\ \\
+	Being stateless, a REST API might increase the per-request overhead significantly by having to handle loads of incoming and outbound calls. Therefore, it is essential that for it to be designed to encourage the caching of intermediate results.
 	\section{Requirements analysis} \label{Section 2.4}
-	
+	Having reviewed the structure of the raw graph data, the background theory of the machine learning models and the structure that will facilitate interaction with the CADETS user interface, the requirements of the project overall were closely examined. The end goal of this project is to have an independent and modular tool that is able to connect to the CADETS UI and efficiently classify the nodes from a given graph. A breakdown of the project requirements can be visualized in Table \ref{Table 2.2}.
 	\begin{longtable}{|p{.51\textwidth}|p{.13\textwidth} p{.13\textwidth} p{.13\textwidth}|}
 		\textbf{Requirements} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty} \\
 		\hline
@@ -405,13 +408,12 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 		GAT Implementation & High & High & High \\
 		PNN Implementation & Medium & Medium & High \\
 		Implementation of the server infrastructure & High & Medium & Medium \\
-		Server-side caching implementation for previous results & Low & Low & Low \\
+		Server-side caching implementation for previous results & Medium & Low & Low \\
 		Comparative evaluation of the implemented machine learning models & High & Medium & High \\
 		\hline
 		\caption[Requirements overview]{\centering Overview of the high-level requirements, their priorities, risks and difficulties.}
 		\label{Table 2.2}
 	\end{longtable}
-
 	\section{Choice of tools} \label{Section 2.5}
 	This section describes the tools choices that I made in order to meet the requirements described in Section \ref{Section 2.4}. 
 	\subsection{Programming languages} \label{Section 2.5.1}
@@ -463,7 +465,7 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 		\label{Table 2.4}
 	\end{longtable}
 	
-	\section{Software engineering techniques}
+	\section{Software engineering techniques} \label{Section 2.7}
 	For the purpose of this project, I decided to use the \textbf{Iterative and Incremental Development Model}. I divided the overall project into three separate modules: 
 	\begin{enumerate}
 		\item An \textit{interface that communicates with the Neo4J database} in order to extract the features vectors that are used by the machine learning models.
@@ -471,7 +473,7 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 		\item The \textit{server interface} that would handle requests from the CADETS client.
 	\end{enumerate}
 
-	\section{Summary}
+	\section{Summary} \label{Section 2.8}
 	In this chapter I discussed the data the machine learning models work on and how it is preprocessed, the background theory that had to be understood and the software engineering decision that were made before the work could begin. I have presented a condensed theory of the models that were implemented as part of this project. I have also described how the machine learning models will interact with the external sources (i.e. the Neo4J database and the CADETS UI).
 	\\ \\
 	The next chapter will provide a detailed breakdown of the implementation, showing how the aims described here were accomplished. 
