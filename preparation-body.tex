@@ -309,7 +309,7 @@
 	\subsection{Convolutional Neural Networks} 
 		
 	\subsection{Graph Attention Network}	
-	This section describes Graph Attention Networks (GATs), bleeding-edge neural network architectures that operate on graph-structured data. It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT). One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
+	This section describes Graph Attention Networks (GATs), bleeding-edge neural network architectures that operate on graph-structured data (as described by Veli\v{c}kovi\v{c} et al., 2018). It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT). One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
 	\\ \\ 
 	By stacking layers in which nodes are able to attend over their neighbourhood's features, GATs enable specifying different weights to different nodes in a neighbourhood, without requiring any kind of costly matrix operations or depending on knowing the graph structure upfront. 
 	\\ \\
@@ -395,4 +395,85 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 	\section{API architecture} \label{Section 2.3}
 	
 	\section{Requirements analysis} \label{Section 2.4}
+	
+	\begin{longtable}{|p{.51\textwidth}|p{.13\textwidth} p{.13\textwidth} p{.13\textwidth}|}
+		\textbf{Requirements} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty} \\
+		\hline
+		Implementation of baseline model & High & Low & Low \\
+		MLP Implementation & High & Medium & Medium \\
+		Implementation of CNN & Medium & High & Medium \\
+		GAT Implementation & High & High & High \\
+		PNN Implementation & Medium & Medium & High \\
+		Implementation of the server infrastructure & High & Medium & Medium \\
+		Server-side caching implementation for previous results & Low & Low & Low \\
+		Comparative evaluation of the implemented machine learning models & High & Medium & High \\
+		\hline
+		\caption[Requirements overview]{\centering Overview of the high-level requirements, their priorities, risks and difficulties.}
+		\label{Table 2.2}
+	\end{longtable}
+
+	\section{Choice of tools} \label{Section 2.5}
+	This section describes the tools choices that I made in order to meet the requirements described in Section \ref{Section 2.4}. 
+	\subsection{Programming languages} \label{Section 2.5.1}
+	Early in the planning stage I decided to use Python 3.6.4\footnote{\textbf{\url{https://www.python.org/downloads/release/python-364/}}} as the main programming language. It is extremely popular in both research and industry deep learning communities, providing a large variety of libraries that can be utilised to this end. 
+	\\ \\
+	Besides Python, I also used the Cypher Data Manipulation Language (DML) in order to interact to the original graph data stored in Neo4J.  
+	
+	\subsection{Libraries} \label{Section 2.5.2}
+	Apart from the Python built-in libraries, I also used the third-party libraries described in Table \ref{Table 2.3}. 
+	\begin{longtable}{|p{.15\textwidth} p{.10\textwidth} p{.4\textwidth} p{.25\textwidth}|}
+		\textbf{Library} & \textbf{Version} & \textbf{Purpose} & \textbf{Licence}\\
+		\hline
+		keras & 2.1.5 & Building and running the neural networks. & MIT Licence \\
+		numpy & 1.14.2 & Efficient mathematical operations on vectors and matrices. High precision floating-point calculations. & NumPy Licence\\
+		scipy & 1.0.0 & Processing frames and evaluating the machine learning models. & SciPy Licence\\
+		pandas & 0.22.0 & Working with tabular data-structures & BSD 3-Clause Licence\\
+		flask & 0.12 & Handling the HTTP requests in the REST API layer. & BSD 3-Clause Licence\\
+		matplotlib & 2.0.0 & Plotting graphs. & PSF Licence \\
+		neo4j-driver & 1.5.3 & Querying the Neo4J database. & Apache 2.0 Licence\\
+		pymongo & 3.6.1 & Handling the server-side caching of classification results. & Apache 2.0 Licence\\
+		\hline
+		\caption[Libaries table]{\centering Table showing the third-party libraries used  as part of this project}
+		\label{Table 2.3}
+	\end{longtable} 
+	The library of key importance to the project is \textbf{Keras}, a high-level neural networks API using Tensorflow\footnote{\textbf{\url{https://www.tensorflow.org/}}} as backend. It is a modular and easily extensible library that fits the iterative software development methodology adopted in this project.
+	\subsection{Development and testing environment}
+	Development work was entirely done on my personal machine -- a 15" Macbook Pro, running MacOS High Sierra (version 10.13.2). The IDE I chose for this project was \textbf{PyCharm}\footnote{\textbf{\url{https://www.jetbrains.com/pycharm/}}}, due to its high flexibility and support for version control and testing.
+	\\ \\
+	For a project at this scale, version control is crucial. In order to organize my codebase accordingly, I used the \textbf{git} version control environment and synchronized it remotely with the free online hosting service \textit{GitHub}\footnote{\textbf{\url{https://github.com}}}. GitHub was also used as the main backup strategy for this project.
+	\\ \\
+	A separate GitHub repository was used to maintain the \LaTeX \space code for this dissertation. 
+	
+	\section{Starting point} \label{Section 2.6}
+	At the start of this project, I had intermediate knowledge of Python, having used it in the Part 1B group project and a number of other small personal projects. However, having had no previous experience with Keras, I had to become acquainted with the API and to learn how to use it to configure neural networks.   
+	\\ \\
+	In terms of theoretical background, the Artificial Intelligence I course provided sufficient initial knowledge to understand the high-level behaviour of MLPs. Additional research was required to understand the CNNs, GATs and non-parametric techniques implemented. The full list of Tripos courses that were applicable to the project can be seen in Table \ref{Table 2.4}.
+	
+	\begin{longtable}{|p{.40\textwidth} | p{.50\textwidth}|}
+		\textbf{Course} & \textbf{Applicability} \\ 
+		\hline
+		Artificial Intelligence I & Basic machine learning and neural networks \\
+		Databases & Interacting with the Neo4J database \\
+		Concurrent \& Distributed Systems & REST API setup \\ 
+		Networking & Handling HTTP requests \\
+		Operating Systems & High-level understanding of UNIX-based operating systems\\
+		Security I & Basic notions of UNIX security setup \\
+		\hline
+		\caption[Computer Science Tripos courses and their applicability to this project.]{\centering Computer Science Tripos courses and their applicability to this project.}
+		\label{Table 2.4}
+	\end{longtable}
+	
+	\section{Software engineering techniques}
+	For the purpose of this project, I decided to use the \textbf{Iterative and Incremental Development Model}. I divided the overall project into three separate modules: 
+	\begin{enumerate}
+		\item An \textit{interface that communicates with the Neo4J database} in order to extract the features vectors that are used by the machine learning models.
+		\item The actual \textit{machine learning models}. 	An initial implementation was developed for each model, which was iteratively refined in order to improve its performance.  
+		\item The \textit{server interface} that would handle requests from the CADETS client.
+	\end{enumerate}
+
+	\section{Summary}
+	In this chapter I discussed the data the machine learning models work on and how it is preprocessed, the background theory that had to be understood and the software engineering decision that were made before the work could begin. I have presented a condensed theory of the models that were implemented as part of this project. I have also described how the machine learning models will interact with the external sources (i.e. the Neo4J database and the CADETS UI).
+	\\ \\
+	The next chapter will provide a detailed breakdown of the implementation, showing how the aims described here were accomplished. 
+	
 \end{document}

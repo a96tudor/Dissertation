@@ -3,7 +3,7 @@
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
 \usepackage{verbatim}
-\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage{docmute} 
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
@@ -21,8 +21,26 @@
 \usepackage{mathtools}
 \usepackage{amsfonts}
 \usepackage{float}
+\usepackage[T1]{fontenc}
+\usepackage{currvita}
+%\usepackage[style=authoryear,backend=biber]{biblatex}
+%\addbibresource{refs.bib}
+
+
+\makeatletter
+\def\@documentnocite#1{\@bsphack
+	\@for\@citeb:=#1\do{%
+		\edef\@citeb{\expandafter\@firstofone\@citeb}%
+		\if@filesw\immediate\write\@auxout{\string\citation{\@citeb}}\fi
+		\@ifundefined{b@\@citeb}{\G@refundefinedtrue
+			\@latex@warning{Citation `\@citeb' undefined}}{}}%
+	\@esphack}
+\AtBeginDocument{\let\nocite\@documentnocite}
+\makeatother
+
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
+
 
 \setcounter{secnumdepth}{5}
 \raggedbottom                           % try to avoid widows and orphans
@@ -32,10 +50,10 @@
 
 \renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
                                         % more readable
-
 \begin{document}
 
 \bibliographystyle{plain}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% TITLE %%%%%%%%%%%%%%%%%
@@ -131,5 +149,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \include{conclusion-body}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%  BIBLIOGRAPHY %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{refs}
+\nocite{123, a}
 
 \end{document}
