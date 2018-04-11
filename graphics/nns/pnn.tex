@@ -10,6 +10,8 @@
 
 \colorlet{mewnol}{blue!75!cyan}%
 \colorlet{allanol}{blue!50!black}%
+\usepackage{verbatim}
+
 
 \begin{document}
 
@@ -17,7 +19,7 @@
   every neuron/.style={
     circle,
     draw,
-    minimum size=1cm
+    minimum size=1.5cm
   },
   neuron missing/.style={
     draw=none, 
@@ -29,56 +31,74 @@
 
 \begin{tikzpicture}[x=1.5cm, y=1.5cm, >=stealth]
 
-\foreach \m/\l [count=\y] in {1,2,3,missing,4}
-  \node [every neuron/.try, neuron \m/.try] (input-\m) at (0,2.5-\y) {\ifthenelse{\equal{\m}{missing}}{}{\ifthenelse{\equal{\m}{4}}{$x_n$}{$x_\m$}} };
+\foreach \m/\l [count=\y] in {1,2,3,4,5,6,missing,7}
+  \node [every neuron/.try, neuron \m/.try] (input-\m) at (-1,2.5-\y*1.3) {};
 
-\foreach \m [count=\y] in {1,2,3,4,missing,5}
-  \node [every neuron/.try, neuron \m/.try ] (hidden-\m) at (2,3.3-\y*1.10) 
-  {
-  	\ifthenelse{\equal{\m}{missing}}{}{
-  		\ifthenelse{\equal{\m}{5}}{$p_m$}{$p_\m$}
-  	}
-  };
+\foreach \n/\l [count=\x] in {A,B,missing,C} {
+	\ifthenelse{\equal{\n}{missing}}
+		{
+			\node[neuron missing] (hidden-missing) at (3, 7.0-\x*4.3) {};
+		}
+		{
+			\node (text-\n) at (3.7, 7.0-\x*3.8) {\textbf{\small Class \n\space patterns}};
+			\foreach \m/\r [count=\y] in {1,missing,2} {
+				\ifthenelse{\equal{\m}{missing}}
+					{
+						\node[neuron missing, scale=.3] (missing-\n) at (3, 7.0-\x*3.7-\y*1.0) {};
+					}
+				{
+					\node[every neuron] (hidden-\n-\m) at (3, 7.0-\x*3.7-\y*1.0) {
+						\ifthenelse{\equal{\m}{2}}
+							{$\mathbf{X}_{\n, N_{\n}}$}
+							{$\mathbf{X}_{\n, \y}$}
+						
+					};
+				}
+			}
+		}
+}
 
-\foreach \m [count=\y] in {1,2,missing,3}
-  \node [every neuron/.try, neuron \m/.try ] (output-\m) at (4,2.6-\y*1.25) 
-  {
-  	\ifthenelse{\equal{\m}{missing}}{}{
-  		\ifthenelse{\equal{\m}{3}}{$c_k$}{$c_\m$}
-  	}
-  };
+\foreach \n/\a [count=\x] in {A,B,missing,C} {
+	\ifthenelse{\equal{\n}{missing}}
+		{
+			\node[neuron missing](conds-missing) at (7, 3.5-\x*3.0) {};
+			\node[neuron missing](out-missing) at (14, 3.5-\x*3.0) {};
+		}
+		{
+			\node[every neuron] (conds-\n) at (7, 3.5-\x*3.0) {$G_{\n}$};
+			\node[above=.5cm of conds-\n] (text-conds-\n) {$P(\mathbf{X}\mid \n)$};
+			\node[every neuron] (output-\n) at (14, 3.5-\x*3.0) {};
+			\node (out-arrow-\n) at (17, 3.5-\x*3.0) {};
+			\node[scale=0.1] (priors-\n) at (10.5, 3.5-\x*3.0) {};
+			\node[above left=.1cm of priors-\n] (priors-text-\n)  {$P(\n)$};
+		}
+}
 
-\foreach \l [count=\i] in {1,2,3,n}
-  \draw [<-] (input-\i) -- ++(-1,0)
-    node [above, midway] {};
+\foreach \m in {1,...,7}
+	\foreach \i/\a in {A,B,C}
+		\foreach \j/\b in {1,2}
+		{
+			\draw[->] (input-\m) -- (hidden-\i-\j) ; 
+			\draw[->] (hidden-\i-\j) -- (conds-\i);
+			\draw (conds-\i) -- (priors-\i);
+			\draw[->] (output-\i) -- (out-arrow-\i) node[above, midway] {Class \i};
+			\foreach \k/\c in {A,B,C}
+				\draw[->] (priors-\i) -- (output-\k);
+		}
+	
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-4pt,yshift=0pt]
+				(-2,-9.0) -- (-2,2.0) node [black,midway,xshift=-0.6cm] 
+		{};
+\node (text-input-1) at (-2.8, -3.3) {Input};
+\node (text-input-2) at (-2.8, -3.7) {patterns};
 
-\foreach \l [count=\i] in {1,h}
-  \node [above] at (hidden-\i.north) {};
+\node (title-conds) at (7, 3.5) {\textbf{Class conditional densities}};
+\node (title-conds) at (10.5, 3.5) {\textbf{Priors}};
 
-\foreach \l [count=\i] in {1,2,3}
-  \draw [->] (output-\i) -- ++(1,0)
-    node [above, midway] {};
-
-\foreach \i in {1,...,4}
-  \foreach \j in {1,...,5}
-    \draw [->] (input-\i) -- (hidden-\j);
-
-\foreach \i in {1,4}
-	\foreach \j in {1}
-    \draw [->] (hidden-\i) -- (output-\j);
-    
-\foreach \i in {3}
-	\foreach \j in {2}
-		\draw [->] (hidden-\i) -- (output-\j);
-		
-\foreach \i in {2,5}
-	\foreach \j in {3}
-		\draw [->] (hidden-\i) -- (output-\j);
-
-  \node [align=center, above] at (0,3) {\textbf{Input} \\ \textbf{Units}};
-  \node [align=center, above] at (2,3) {\textbf{Pattern} \\ \textbf{Units}};
-  \node [align=center, above] at (4,3) {\textbf{Category} \\ \textbf{Units}};
- 	
-\end{tikzpicture}
+\node (input-layer) at (-1, -12) {\textbf{Input Layer}};
+\node (hidden-layer) at (3, -12) {\textbf{Hidden Pattern Layer}};
+\node (summ-layer) at (8.75, -12) {\textbf{Summation Layer}};
+\node (out-layer) at (14, -12) {\textbf{Output Layer}};
+ \end{tikzpicture}
 
 \end{document}

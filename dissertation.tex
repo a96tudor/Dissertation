@@ -24,6 +24,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{currvita}
 \usepackage[none]{hyphenat}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 %\usepackage[style=authoryear,backend=biber]{biblatex}
 %\addbibresource{refs.bib}
 
@@ -37,7 +39,12 @@
 			\@latex@warning{Citation `\@citeb' undefined}}{}}%
 	\@esphack}
 \AtBeginDocument{\let\nocite\@documentnocite}
+
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+
 \makeatother
+
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -159,6 +166,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{refs}
-\nocite{123, a}
+\nocite{pnn, polonium, pnn-parallel, sigmoidal, nonlinearities, DBLP:journals/corr/LuongPM15, 7266837, 2017arXiv171010903V, 279181, DBLP:journals/corr/KingmaB14, DBLP:journals/corr/VaswaniSPUJGKP17, REST-general, chollet2015keras, DBLP:journals/corr/IoffeS15, Rutkowski2004}
 
 \end{document}

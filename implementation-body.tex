@@ -1,3 +1,95 @@
 \begin{document}
 	\chapter{Implementation}
+	This chapter describes the describes how the requirements described in the previous chapter have been accomplished. 
+	\section{Overall structure of the project} \label{Section: impl/overview}
+	The main objective I had while implementing the project was to be able to have a completely independent tool that is can communicate with the CADETS client and classify nodes successfully. In order to achieve this, I divided the overall project into three smaller sub-modules:
+	
+	\begin{enumerate}
+		\item \label{impl/overview/enum/1} The \textbf{Neo4J interface}, which handles the interaction between my tool and the Neo4J database that stores the raw graph data with the end purpose of extracting the nodes' feature vectors. This is described in detail in Section \ref{Section: impl/neo4j}.
+		\item The \textbf{machine learning models}, which use the feature vectors extracted as part of the \ref{impl/overview/enum/1}$^{\text{st}}$ module in order to classify the nodes into \textit{SHOW} or \textit{HIDE}. The exact details of how they were implemented in Section \ref{Section: impl/ml}.
+		\item The \textbf{REST API}, which wraps around the previous two modules and handles requests received by the tool. This is described in detail in Section \ref{Section: impl/REST}.
+	\end{enumerate}
+	Figure \ref{Fig: impl/pipeline} shows a schema of how the 3 modules will work together as a part of a request processing pipeline. 
+	\\ \\
+	In the following sections, I will describe the modules listed above in a bottom-up approach -- from the Neo4J interaction to the REST API. 
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.95\textwidth]{graphics/overall-schema}	
+		\caption[Processing pipeline]{Overview of the project's processing pipeline.}
+		\label{Fig: impl/pipeline}
+	\end{figure}
+	\section{Neo4J interaction} \label{Section: impl/neo4j}
+	This section describes how the project I implemented interacts with the Neo4J database and how the features for every node are extracted. 
+	\subsection{Database driver} \label{Section: impl/neo4j/driver}
+	The biggest challenge when designing the database driver was the choice of the library I would use to run the actual queries. There are a number of Python libraries available, out of which I took two into consideration: \textbf{py2neo}\footnote{\textbf{\url{http://py2neo.org/v3/}}} and \textbf{neo4j-driver}\footnote{\textbf{\url{https://github.com/neo4j/neo4j-python-driver}}}. In order to decide which one I will use, I timed the running of two queries(\textit{match (n) return n} and \textit{match(n) return n limit 1} ) and the overall feature extraction for one node on a database of $631, 357 \text{ nodes}$ for both libraries. The resulting times are shown in Table \ref{Table: impl/neo4j-driver-timings}:
+	\begin{longtable}{|p{.15\textwidth}|p{.30\textwidth}p{.25\textwidth}p{.25\textwidth}|}
+		\textbf{library} & \textbf{\textit{match(n) return n}} & \textbf{\textit{match(n) return n limit 1}} & \textbf{feature extraction} \\
+		\hline
+		\textit{py2neo} & $337.477\text{s } (\approx5.5 \text{ minutes})$ & $13\text{ms}$ & TODO \\ 
+		\textit{neo4j-driver} & $97.288\text{s }(\approx1.5 \text{ minutes})$ & $28\text{ms}$ & $68.78\text{s}$  \\
+		\hline
+		\caption[Neo4J libraries timings]{\centering Table showing the timings for the two libraries considered}
+		\label{Table: impl/neo4j-driver-timings}
+	\end{longtable}
+	The main purpose of the database driver is to support feature extraction(detailed in Section \ref{Section: impl/neo4j/features}). Therefore, given the times in Table \ref{Table: impl/neo4j-driver-timings}, I decided to use \textbf{neo4j-driver}. On top of this library, I wrote a wrapper class, \textbf{DatabaseDriver}. 
+	\subsection{Feature extractor} \label{Section: impl/neo4j/features}
+	The feature extractor uses the DatabaseDriver described in the previous section in order to build the feature vectors for a list of nodes, just as described in Table \ref{Table: prep/features}. Therefore, the two classes will be in an association relationship (i.e. the FeatureExtractor has one instance of DatabaseDriver), as displayed in Figure \ref{Fig: impl/neo4j-driver-uml}.
+	\\ \\
+	Considering the fact that the machine learning models require purely real feature vectors to work, I decided to use \textbf{one-hot-encoding} for the categorical features. In other words, for every such feature, I generated one extra boolean column for each category. Only one of these columns can take the value 1 for each sample.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.5\textwidth]{graphics/umls/uml-neo4j-driver}
+		\caption[FeatureExtractor UML class diagram]{\centering UML class diagram showing the interaction between the feature extractor and the database driver.}
+		\label{Fig: impl/neo4j-driver-uml}
+	\end{figure}
+	\section{Machine learning models} \label{Section: impl/ml}
+	With the first module being implemented, I started to implement different machine learning models that I would use to classify the nodes. 
+	\subsection{Training set} \label{Section: impl/ml/training-set}
+	One of the key requirements for a well-behaved 
+	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.7\textwidth]{graphics/nns/gat}	
+		\caption[Attention mechanism]{The attention mechanism computing the attention coefficients \\ $\alpha_{i,j}=\text{softmax}_j(a(\mathbf{Wh}_i, \mathbf{Wh}_j))$, where $a$ is the Leaky ReLU (LReLU) activation function, parametrized by a weight vector $\mathbf{a}\in\mathbb{R}^{2F'}$, namely: \\  $a(\mathbf{Wh}_i, \mathbf{Wh}_j)=\text{LReLU}(\mathbf{a}^T[\mathbf{Wh}_i\mid\mid\mathbf{Wh}_j])$}.
+		\label{Fig: impl/attn-mechanism}
+	\end{figure}
+	\subsection{Probabilistic Neural Networks} \label{Section: impl/ml/pnn}
+	The implementation of Probabilistic Neural Networks (PNNs) consisted of two steps: PNN training and classification. 
+	\begin{algorithm}[H]
+		\caption{PNN training}
+		\begin{algorithmic}
+			\Procedure{train\_PNN}{}
+				\State $j \gets 0$
+				\State $n \gets \text{number of patterns}$ 
+				\Do
+					\State $j \gets j + 1$
+					\State $x_{jk} \gets \frac{x_{jk}}{\sqrt{\sum_{i=1}^{d}x_{ij}^2}}$ \Comment{\textbf{normalization}}
+					\State $w_{jk} \gets x_{jk}$ \Comment{\textbf{training}}
+					\If{$\mathbf{x} \in \omega_i$}
+						\State $a_ic \gets 1$
+					\EndIf
+				\doWhile{$j \neq n$}
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	\begin{algorithm}
+	\caption{PNN classification}
+	\begin{algorithmic}[H]
+		\Procedure{classify\_PNN}{$\mathbf{x}$}
+		\State $k \gets 0$
+		\State $n \gets \text{number of patterns}$ 
+			\Do
+				\State $k \gets k + 1$
+				\State $z_k \gets \mathbf{w_k}^T\mathbf{x}$
+				\If{$a_{kc} = 1$}
+					\State $g_c \gets g_c + \exp(\frac{z_k - 1}{\sigma^2})$
+				\EndIf
+			\doWhile{$k \neq n$} 
+		\State $class \gets \argmax_i g_i(\mathbf{x})$ \\
+		\Return{class}
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+	\section{REST API} \label{Section: impl/REST}
+	\section{}
 \end{document}
