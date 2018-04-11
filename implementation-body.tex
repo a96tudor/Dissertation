@@ -35,7 +35,7 @@
 	\subsection{Feature extractor} \label{Section: impl/neo4j/features}
 	The feature extractor uses the DatabaseDriver described in the previous section in order to build the feature vectors for a list of nodes, just as described in Table \ref{Table: prep/features}. Therefore, the two classes will be in an association relationship (i.e. the FeatureExtractor has one instance of DatabaseDriver), as displayed in Figure \ref{Fig: impl/neo4j-driver-uml}.
 	\\ \\
-	Considering the fact that the machine learning models require purely real feature vectors to work, I decided to use \textbf{one-hot-encoding} for the categorical features. In other words, for every such feature, I generated one extra boolean column for each category. Only one of these columns can take the value 1 for each sample.
+	Considering the fact that the machine learning models require purely real feature vectors to work, I decided to use \textbf{one-hot-encoding} for the categorical features. In other words, for every such feature, I generated one extra boolean column for each category. Only one of these columns can take the value 1 for each sample. Using this encoding led to an increase in the length of the feature vectors, from 13 to 23 variables. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.5\textwidth]{graphics/umls/uml-neo4j-driver}
@@ -45,7 +45,10 @@
 	\section{Machine learning models} \label{Section: impl/ml}
 	With the first module being implemented, I started to implement different machine learning models that I would use to classify the nodes. 
 	\subsection{Training set} \label{Section: impl/ml/training-set}
-	One of the key requirements for a well-behaved 
+	One of the key requirements for a well-behaved machine learning model is to have a comprehensive training set. Keeping this in mind, I used the ground-truths listed in Section \ref{Section: prep/data/ground-truths} with the aim of extracting examples of nodes from both classes (i.e. \textit{SHOW} and \textit{HIDE}) from a database of $6,007$ nodes, out of which $5,498$ are of interest (i.e. either \textit{File}, \textit{Process} or \textit{Socket}). For all these selected nodes, I used the feature extractor in order to build a labelled training set $\mathbf{s}=\{ (\mathbf{x}_1, \mathbf{y_1}), \dots, (\mathbf{x}_n, \mathbf{y_n}) \}$ that will be used by all the models in the training phase. As expected, there is a significant imbalance in the training data, with $2,382$ nodes ($43.33\%$) being labelled as \textit{SHOW} and $3,115$ ($56.67\%$) being labelled as \textit{HIDE}. This is a factor that I took into consideration both when designing and evaluating the models.
+	\\ \\
+	Moreover, using the same training set for all the models implemented is one of the key factors that ensure the correctness of the models' comparative evaluation. 
+	
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
 	\begin{figure}[H]
 		\centering
