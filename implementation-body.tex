@@ -111,14 +111,17 @@
 		\textit{Socket} & \\
 		\textit{Process} & \\
 		\hline
-		\textit{Machine} & Only represents $0.00178\%$ of the nodes, so consider classified as \textit{SHOW} by default. \\
+		\textit{Machine} & Only represents $0.00178\%$ of the total number of nodes, so consider classified as \textit{SHOW} by default. \\
 		\hline
 		\textit{Meta} & \multirow{2}{*}{Return the classification result for the \textit{Process} node that it is connected to.} \\
-		\textit{Pipe} &  \\
+		\textit{Pipe} & \\
 		\hline
 		\caption{API strategy for different type of nodes}
 		\label{Table: impl/REST/API-strategy}
  	\end{longtable}
+ 
 	\subsection{Caching mechanism} \label{Section: impl/REST/caching}
+	Due to the stateless nature of REST APIs, caching is a desirable feature in order to avoid a high load on the application. Moreover, an efficient caching mechanism is essential to support the 2-step format of the API described in Section \ref{Section: impl/REST/actual}. 
+	
 	\section{}
 \end{document}
