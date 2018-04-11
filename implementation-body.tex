@@ -36,6 +36,8 @@
 	The feature extractor uses the DatabaseDriver described in the previous section in order to build the feature vectors for a list of nodes, just as described in Table \ref{Table: prep/features}. Therefore, the two classes will be in an association relationship (i.e. the FeatureExtractor has one instance of DatabaseDriver), as displayed in Figure \ref{Fig: impl/neo4j-driver-uml}.
 	\\ \\
 	Considering the fact that the machine learning models require purely real feature vectors to work, I decided to use \textbf{one-hot-encoding} for the categorical features. In other words, for every such feature, I generated one extra boolean column for each category. Only one of these columns can take the value 1 for each sample. Using this encoding led to an increase in the length of the feature vectors, from 13 to 23 variables. 
+	\\ \\
+	On top of extracting the feature matrix, this module also has support for generating the adjacency matrix of the nodes from the list provided. This is required for models such as the Graph Attention Networks (Section \ref{Section: impl/ml/gat}).
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.5\textwidth]{graphics/umls/uml-neo4j-driver}
@@ -48,7 +50,6 @@
 	One of the key requirements for a well-behaved machine learning model is to have a comprehensive training set. Keeping this in mind, I used the ground-truths listed in Section \ref{Section: prep/data/ground-truths} with the aim of extracting examples of nodes from both classes (i.e. \textit{SHOW} and \textit{HIDE}) from a database of $6,007$ nodes, out of which $5,498$ are of interest (i.e. either \textit{File}, \textit{Process} or \textit{Socket}). For all these selected nodes, I used the feature extractor in order to build a labelled training set $\mathbf{s}=\{ (\mathbf{x}_1, \mathbf{y_1}), \dots, (\mathbf{x}_n, \mathbf{y_n}) \}$ that will be used by all the models in the training phase. As expected, there is a significant imbalance in the training data, with $2,382$ nodes ($43.33\%$) being labelled as \textit{SHOW} and $3,115$ ($56.67\%$) being labelled as \textit{HIDE}. This is a factor that I took into consideration both when designing and evaluating the models.
 	\\ \\
 	Moreover, using the same training set for all the models implemented is one of the key factors that ensure the correctness of the models' comparative evaluation. 
-	
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
 	\begin{figure}[H]
 		\centering
@@ -94,5 +95,30 @@
 	\end{algorithmic}
 \end{algorithm}
 	\section{REST API} \label{Section: impl/REST}
+	This section describes how the REST API layer that eases the application's interaction with the CADETS user interface was implemented.
+	\subsection{Actual REST API} \label{Section: impl/REST/actual}
+	The main entry point to the REST API receives a POST HTTP request from the client, containing a JSON file with a list of nodes to classify. Each node in the list will be represented by a (\textit{uuid}, \textit{timestamp}) pair, which allows the tool to uniquely identify it in the Neo4J database. The API then initiates a 'job' that starts classifying the nodes in background and replies with a JSON containing its ID.
+	\\ \\
+	Using this job ID, the client can then query the API using an HTTP GET request and the API will reply with a different JSON containing two fields: \textit{"results"} and \textit{"status"}. The \textit{"results"} field contains the list of nodes that have been classified so far as part of the job in question. The \textit{"status"} field can take one of three values, depending on what the status of the job is: \textit{WAITING} means that it is idle, \textit{RUNNING} means that the job is still classifying nodes and therefore the results returned are partial (i.e. only for a subset of the nodes) and \textit{DONE} represents the fact that the job is finished and the returned classification results are for the entire set of nodes queried initially. 
+	\\ \\
+	I decided to implement this 2-step mechanism due to the fact that node classification can take a long time, especially when working with large databases. This way, the client sends one request and then can query the API at any time for the job status and partial or final classification results.
+	\\ \\
+	Another key factor that I took into consideration is how the API will treat different types of nodes, given the fact that the machine learning models only apply to \textit{File}, \textit{Socket} and \textit{Process} nodes. Table \ref{Table: impl/REST/API-strategy} shows the strategies adopted by the API for different types of nodes.
+	\begin{longtable}{|p{.15\textwidth}|p{.85\textwidth}|}
+		\textbf{Node type} & \textbf{API strategy} \\
+		\hline
+		\textit{File} & \multirow{3}{*}{Return the classification result for the node.} \\
+		\textit{Socket} & \\
+		\textit{Process} & \\
+		\hline
+		\textit{Machine} & Only represents $0.00178\%$ of the nodes, so consider classified as \textit{SHOW} by default. \\
+		\hline
+		\textit{Meta} & \multirow{2}{*}{Return the classification result for the \textit{Process} node that it is connected to.} \\
+		\textit{Pipe} &  \\
+		\hline
+		\caption{API strategy for different type of nodes}
+		\label{Table: impl/REST/API-strategy}
+ 	\end{longtable}
+	\subsection{Caching mechanism} \label{Section: impl/REST/caching}
 	\section{}
 \end{document}
