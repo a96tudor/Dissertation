@@ -9,7 +9,7 @@
 
 	\footnotetext[1]{\textbf{\url{https://neo4j.com/}}}
 	
-	\subsection{Data structure analysis}
+	\subsection{Data structure analysis} \label{Section: prep/datastructure}
 	The data is stored as a graph, consisting of nodes and edges. Here, nodes represent the actors(processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(id, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
 	\\ \\
 	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of nodes' frequencies. The 'Meta' nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the 'File' nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a biast classifier (i.e. a model that classifies 'File' nodes correctly and misclassifies the other node types). 

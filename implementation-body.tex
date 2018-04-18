@@ -70,7 +70,7 @@
 				\Do
 					\State $j \gets j + 1$
 					\State $x_{jk} \gets \frac{x_{jk}}{\sqrt{\sum_{i=1}^{d}x_{ij}^2}}$ \Comment{\textbf{normalization}}
-					\State $w_{jk} \gets x_{jk}$ \Comment{\textbf{training}}
+					\State $w_{jk} \gets x_{jk}$ \Comment{\textbf{setting weight values}}
 					\If{$\mathbf{x} \in \omega_i$}
 						\State $a_ic \gets 1$
 					\EndIf
@@ -104,12 +104,7 @@
 	Using this job ID, the client can then query the API using an HTTP GET request and the API will reply with a different JSON containing two fields: \textit{"results"} and \textit{"status"}. The \textit{"results"} field contains the list of nodes that have been classified so far as part of the job in question. The \textit{"status"} field can take one of three values, depending on what the status of the job is: \textit{WAITING} means that it is idle, \textit{RUNNING} means that the job is still classifying nodes and therefore the results returned are partial (i.e. only for a subset of the nodes) and \textit{DONE} represents the fact that the job is finished and the returned classification results are for the entire set of nodes queried initially. 
 	\\ \\
 	I decided to implement this 2-step mechanism due to the fact that node classification can take a long time, especially when working with large databases. This way, the client sends one request and then can query the API at any time for the job status and partial or final classification results. Figure \ref{Fig: impl/REST/API-integrate} shows how these jobs work in relation with the other modules.
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
-		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models).}
-		\label{Fig: impl/REST/API-integrate}
-	\end{figure}
+	
 	Another key factor that I took into consideration is how the API will treat different types of nodes, given the fact that the machine learning models only apply to \textit{File}, \textit{Socket} and \textit{Process} nodes. Table \ref{Table: impl/REST/API-strategy} shows the strategies adopted by the API for different types of nodes.
 	\begin{longtable}{|p{.15\textwidth}|p{.85\textwidth}|}
 		\textbf{Node type} & \textbf{API strategy} \\
@@ -139,6 +134,21 @@
 		\caption[Cache schema]{Figure showing the relational schema used by the caching mechanism}
 		\label{Fig: impl/REST/cache/relational}
 	\end{figure}
-
-	\section{}
+	By default, every cache entry is invalidated 24 hours after the job that the node is associated with is finished. On top of this, the API provides an entry point for forcibly clearing the cache. 
+	
+	\section{Modularity \& Scalability} \label{Section: impl/modularity&scalability}
+	During the implementation of the API, I had two goals in mind: modularity and scalability. In order to achieve this, every section makes use of the object-oriented paradigm (as shown in Figure \ref{Fig: impl/REST/API-integrate}). This allows anyone who wants to extend the tool to do so with ease, by simply extending one class and specifying this when starting the API.  
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
+		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models).}
+		\label{Fig: impl/REST/API-integrate}
+	\end{figure}
+	The \textbf{feature extractor} can connect to any Neo4J database that has the structure described in Section \ref{Section: prep/datastructure} and extract feature vectors for the nodes. 
+	\\ \\
+	Anyone can add a new machine learning model to the API, by simply extending the abstract class \textit{models.Model}. The new model can be used by the API by simply specifying it as a parameter.  
+	\\ \\
+	The REST-like architecture of the API allows for the server-side model to scale horizontally, by balancing the load between multiple instances of the server. The cache can then be either shared by all the instances, or have one cache for each instance. In both cases, though, the cache database can be scaled vertically by running it on a more powerful machine. 
+	
+	\section{Summary} \label{Section: impl/summary}
 \end{document}
