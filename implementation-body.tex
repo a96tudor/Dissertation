@@ -50,6 +50,8 @@
 	One of the key requirements for a well-behaved machine learning model is to have a comprehensive training set. Keeping this in mind, I used the ground-truths listed in Section \ref{Section: prep/data/ground-truths} with the aim of extracting examples of nodes from both classes (i.e. \textit{SHOW} and \textit{HIDE}) from a database of $6,007$ nodes, out of which $5,498$ are of interest (i.e. either \textit{File}, \textit{Process} or \textit{Socket}). For all these selected nodes, I used the feature extractor in order to build a labelled training set $\mathbf{s}=\{ (\mathbf{x}_1, \mathbf{y_1}), \dots, (\mathbf{x}_n, \mathbf{y_n}) \}$ that will be used by all the models in the training phase. As expected, there is a significant imbalance in the training data, with $2,382$ nodes ($43.33\%$) being labelled as \textit{SHOW} and $3,115$ ($56.67\%$) being labelled as \textit{HIDE}. This is a factor that I took into consideration both when designing and evaluating the models.
 	\\ \\
 	Moreover, using the same training set for all the models implemented is one of the key factors that ensure the correctness of the models' comparative evaluation. 
+	\subsection{Baseline model} \label{Section: impl/ml/baseline}
+	The baseline model 
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
 	\begin{figure}[H]
 		\centering
@@ -133,9 +135,10 @@
 	The actual database structure is made of two tables: \textit{Jobs} (which stores all the jobs processed by the server and their status) and \textit{Nodes} (which stores the cached results for the nodes that have been processed over time). The full relational schema is shown in Figure \ref{Fig: impl/REST/cache/relational}.
 	\begin{figure}[H]
 		\centering
-		%\includegraphics[width=.7\textwidth]{graphics/cache-schema}
+		\includegraphics[width=.7\textwidth]{graphics/cache-schema}
 		\caption[Cache schema]{Figure showing the relational schema used by the caching mechanism}
 		\label{Fig: impl/REST/cache/relational}
 	\end{figure}
+
 	\section{}
 \end{document}
