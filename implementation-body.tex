@@ -101,8 +101,13 @@
 	\\ \\
 	Using this job ID, the client can then query the API using an HTTP GET request and the API will reply with a different JSON containing two fields: \textit{"results"} and \textit{"status"}. The \textit{"results"} field contains the list of nodes that have been classified so far as part of the job in question. The \textit{"status"} field can take one of three values, depending on what the status of the job is: \textit{WAITING} means that it is idle, \textit{RUNNING} means that the job is still classifying nodes and therefore the results returned are partial (i.e. only for a subset of the nodes) and \textit{DONE} represents the fact that the job is finished and the returned classification results are for the entire set of nodes queried initially. 
 	\\ \\
-	I decided to implement this 2-step mechanism due to the fact that node classification can take a long time, especially when working with large databases. This way, the client sends one request and then can query the API at any time for the job status and partial or final classification results.
-	\\ \\
+	I decided to implement this 2-step mechanism due to the fact that node classification can take a long time, especially when working with large databases. This way, the client sends one request and then can query the API at any time for the job status and partial or final classification results. Figure \ref{Fig: impl/REST/API-integrate} shows how these jobs work in relation with the other modules.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
+		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models).}
+		\label{Fig: impl/REST/API-integrate}
+	\end{figure}
 	Another key factor that I took into consideration is how the API will treat different types of nodes, given the fact that the machine learning models only apply to \textit{File}, \textit{Socket} and \textit{Process} nodes. Table \ref{Table: impl/REST/API-strategy} shows the strategies adopted by the API for different types of nodes.
 	\begin{longtable}{|p{.15\textwidth}|p{.85\textwidth}|}
 		\textbf{Node type} & \textbf{API strategy} \\
@@ -122,6 +127,15 @@
  
 	\subsection{Caching mechanism} \label{Section: impl/REST/caching}
 	Due to the stateless nature of REST APIs, caching is a desirable feature in order to avoid a high load on the application. Moreover, an efficient caching mechanism is essential to support the 2-step format of the API described in Section \ref{Section: impl/REST/actual}. 
-	
+	\\ \\
+	In order to handle caching, I am using a PostgreSQL database, for its object-relational format. Unlike other SQL dialects (such as MySQL), it is highly customizable, providing stored procedures in more than a dozen programming languages, including Java, Perl and Python. 
+	\\ \\
+	The actual database structure is made of two tables: \textit{Jobs} (which stores all the jobs processed by the server and their status) and \textit{Nodes} (which stores the cached results for the nodes that have been processed over time). The full relational schema is shown in Figure \ref{Fig: impl/REST/cache/relational}.
+	\begin{figure}[H]
+		\centering
+		%\includegraphics[width=.7\textwidth]{graphics/cache-schema}
+		\caption[Cache schema]{Figure showing the relational schema used by the caching mechanism}
+		\label{Fig: impl/REST/cache/relational}
+	\end{figure}
 	\section{}
 \end{document}
