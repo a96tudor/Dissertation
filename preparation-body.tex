@@ -393,7 +393,7 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 	 \end{equation}
 	 and $c_i(\mathbf{x})$ is the output of the $i^\text{th}$ category unit.
 	\section{API architecture} \label{Section 2.3}
-	Once I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
+	Oncne-e I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
 	\\ \\
 	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and are do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the different layers involved in a REST APIs' architecture make it highly modular and scalable. 
 	\\ \\
