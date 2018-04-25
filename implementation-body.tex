@@ -152,24 +152,57 @@
 		\caption{Architecture of the Convolutional Neural Network}
 		\label{Fig: impl/ml/cnn/architecture}
 	\end{figure}
-	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. The purpose of the convolutional layers is to learn a kernel that would be able to find patterns between the variables within each feature vector. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
+	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. The purpose of the convolutional layers is to learn a kernel that would be able to find patterns between the variables within each feature vector. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraphLast} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
 	\begin{figure}[H]
 		\centering
-		\includegraphics{graphics/nns/cnn-compGraph}
-		\caption{Computational graph for a convolutional layer}
-		\label{Fig: impl/ml/cnn/compGraph}
+		\begin{subfigure}[b]{.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth]{graphics/nns/cnn-compGraph}
+			\caption{Computational graph for one of the first two convolutional layers}
+			\label{Fig: impl/ml/cnn/compGraph}
+		\end{subfigure}
+		\begin{subfigure}[b]{.4\textwidth}
+			\centering
+			\includegraphics[width=.7\textwidth]{graphics/nns/cnn-compGraphLast}
+			\caption{Computational graph for the last convolutional layer}
+			\label{Fig: impl/ml/cnn/compGraphLast}
+		\end{subfigure}
+		\caption{Computational graphs for the convolutional layers.}
+		\label{Fig: impl/ml/cnn/compGraphs}
 	\end{figure}
 	The activation functions of the dense and output layers are ReLU and softmax, respectively. Figure \ref{Fig: impl/ml/mlp/compgraph} pictures the computational graphs for these two layers. 
 	\\ \\
-	\subsubsection*{Training the CNN}
 	Just like the MLP, the CNN optimizes the parameters using Adam and the \textbf{binary crossentropy} loss function with weight decay regularization (Equation \ref{Eq: impl/ml/loss}).
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
+	Another model implemented as part of the project was a Graph Attention Network. Unlike the other models implemented, it makes more use of the relational nature of the graph structure the data is stored in. 
+	\\ \\
+	The key layer in this implementation is the \textbf{graph attention layer}, which maps any input vector $\mathbf{h}_i
+	 \in \mathbb{R}^{23}$ to a new one in $\mathbf{h}_i'\in \mathbb{R}^{32}$. First, for every node $i$, it computes the attention coefficients $\alpha_{i,j} = \text{softmax}(e_{i,j})$ for every neighbour $j$ of that node, which tells us how much that neighbour influences the current node. In my implementation,$e_{i,j}$ is given by the following expression:
+	\begin{equation}
+		e_{i,j} = \text{LReLU}(\mathbf{a}^T[\mathbf{W}\mathbf{h}_i\vert\vert\mathbf{W}\mathbf{h}_j])
+	\end{equation}
+	where $\vert\vert$ represents the concatenation of two vectors and $\mathbf{a}\in\mathbb{R}^{64}$ and $\mathbf{W}\in\mathbb{R}^{32\times23}$ are parameters that are learned in the training phase. The full attention mechanism computing the coefficients $\alpha_{i,j}$ is shown by the schema in Figure \ref{Fig: impl/ml/gat/attn-mechanism}. 
+	\\ \\
+	After computing the attention coefficients for all node pairs $(i,j)$, the graph attention layer assigns a new input vectors $\mathbf{h}_i'$ as follows:
+	\begin{equation}
+		\mathbf{h}_i' = \text{eLU}\Bigg( \sum_{j \in \mathcal{N}_i} \alpha_{i,j} \mathbf{W} \mathbf{h}_j \Bigg)
+	\end{equation}
+	where $\mathcal{N}_i$ is the neighbourhood of node $i$ (i.e. the node's immediate neighbours) and $\text{eLU}$ is an activation function defined as:
+	\begin{equation*}
+		eLU(x) = 
+			\begin{cases}
+				0.1(e^x - 1), \text{ if } x < 0 \\
+				x, \text{ if } x \geq 0
+			\end{cases}
+	\end{equation*}
+	The attention layer then feeds its output into a dense one with 32 neurons and using the ReLU activation function, along with batch normalization and dropout. The next layer is the output one, with two neurones, which compute the softmax activation function in order to generate the probability distribution over the two classes.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.7\textwidth]{graphics/nns/gat}	
-		\caption[Attention mechanism]{The attention mechanism computing the attention coefficients \\ $\alpha_{i,j}=\text{softmax}_j(a(\mathbf{Wh}_i, \mathbf{Wh}_j))$, where $a$ is the Leaky ReLU (LReLU) activation function, parametrized by a weight vector $\mathbf{a}\in\mathbb{R}^{2F'}$, namely: \\  $a(\mathbf{Wh}_i, \mathbf{Wh}_j)=\text{LReLU}(\mathbf{a}^T[\mathbf{Wh}_i\mid\mid\mathbf{Wh}_j])$}.
-		\label{Fig: impl/attn-mechanism}
+		\caption[Attention mechanism]{The attention mechanism computing the attention coefficients \\ $\alpha_{i,j}=\text{softmax}_j(a(\mathbf{Wh}_i, \mathbf{Wh}_j))$, where $\mathbf{W}\in\mathbb{R}^{32\times23}$ is a weight matrix and $a$ is the Leaky ReLU (LReLU) activation function, parametrized by a weight vector $\mathbf{a}\in\mathbb{R}^{64}$, namely: \\  $a(\mathbf{Wh}_i, \mathbf{Wh}_j)=\text{LReLU}(\mathbf{a}^T[\mathbf{Wh}_i\mid\mid\mathbf{Wh}_j])$}.
+		\label{Fig: impl/ml/gat/attn-mechanism}
 	\end{figure}
+	Similarly to the previous two models, the Graph attention network is optimized using the Adam algorithm and the binary cross-entropy loss function. 
 	\subsection{Probabilistic Neural Network} \label{Section: impl/ml/pnn}
 	The implementation of Probabilistic Neural Networks (PNNs) consisted of two major algorithms: PNN training and classification.
 	\subsubsection*{PNN training}
