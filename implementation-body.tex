@@ -120,6 +120,7 @@
 	The loss function used for this model computes the binary crossentropy between the output distribution and the one-hot encoded labels from the trainig set. On top of this, I am using weight decay as a regularization technique in order to control model complexity by penalizing large weights. The final loss function has the following form:
 	\begin{equation}
 		\mathfrak{L} = - y_{C_1}\log(y'_{C_1}) - y_{C_2}\log(y'_{C_2}) + \frac{\lambda}{2}\vert\vert\mathbf{w}\vert\vert 
+		\label{Eq: impl/ml/loss}
 	\end{equation}
 	where $C_1$ and $C_2$ are the \textit{SHOW} and \textit{HIDE} classes, $\lambda$ is a hyperparameter and $\vert\vert\mathbf{w}\vert\vert$ is the $L_2$ norm of the weight vector, namely: $\vert\vert\mathbf{w}\vert\vert = \sqrt{\sum \vert w_i^2 \vert}$.
 	\\ \\
@@ -144,20 +145,24 @@
 	\end{figure}
 	
 	\subsection{Convolutional Neural Network} \label{Section: impl/ml/cnn}
+	In this section I describe the implementation of the third model implemented as part of the project, a Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional convolutional layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=\textwidth]{graphics/nns/cnn}
 		\caption{Architecture of the Convolutional Neural Network}
 		\label{Fig: impl/ml/cnn/architecture}
 	\end{figure}
-	
+	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. The purpose of the convolutional layers is to learn a kernel that would be able to find patterns between the variables within each feature vector. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics{graphics/nns/cnn-compGraph}
 		\caption{Computational graph for a convolutional layer}
 		\label{Fig: impl/ml/cnn/compGraph}
 	\end{figure}
-	
+	The activation functions of the dense and output layers are ReLU and softmax, respectively. Figure \ref{Fig: impl/ml/mlp/compgraph} pictures the computational graphs for these two layers. 
+	\\ \\
+	\subsubsection*{Training the CNN}
+	Just like the MLP, the CNN optimizes the parameters using Adam and the \textbf{binary crossentropy} loss function with weight decay regularization (Equation \ref{Eq: impl/ml/loss}).
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
 	\begin{figure}[H]
 		\centering
