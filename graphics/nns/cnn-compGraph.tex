@@ -1,0 +1,63 @@
+\documentclass[border=0.125cm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{ifthen}
+\usetikzlibrary{matrix,arrows.meta,quotes,shadows,decorations.pathreplacing,positioning,fadings}
+\usepackage{cfr-lm}
+\usetikzlibrary{shapes.misc}
+
+\begin{document}
+	\tikzset{
+		module/.style = {
+			draw,
+			rounded rectangle,
+			fill=white
+		},
+		reg module/.style = {
+			draw,
+			rounded rectangle,
+			fill=blue!20
+		},
+		param/.style = {
+			draw,
+			circle,
+			minimum size = .25cm,
+			fill=white
+		},
+		reg param/.style = {
+			draw,
+			circle, 
+			minimum size = .25cm,
+			fill=blue!20
+		},
+		edge/.style = {
+			->
+		}
+	}
+	\begin{tikzpicture}
+		\node[param] (input) at (0,0){\LARGE $\mathbf{X}$};
+		\node[param] (kernel) at (-2, 0.8) {kernel};
+		\node[reg module] (MatMul) at (-1, 2) {MatMul};
+		\node[reg module] (relu) at (-1, 4) {ReLU};
+		\node[reg module] (dropout) at (-2, 6) {Dropout};
+		\node[param] (keep-prob) at (-3, 5) {$k_p$};
+		
+		\draw[edge] (input) -- (MatMul);
+		\draw[edge] (kernel) -- (MatMul);
+		\draw[edge] (MatMul) -- (relu);
+		\draw[edge] (keep-prob) -- (dropout);
+		\draw[edge] (relu) -- (dropout);
+		
+		\node (in) at (0, -2) {};
+		\node (out) at (-2, 8) {};
+		
+		\draw[edge] (in) -- (input);
+		\draw[edge] (dropout) -- (out); 
+		
+		\node () at (0,-2.1) {Ouputs of};
+		\node () at (0, -2.5) {previous layer};
+		
+		\node () at (-2, 8.5) {Output of};
+		\node () at (-2, 8.1) {convolutional layer};
+ 	\end{tikzpicture}
+\end{document}
