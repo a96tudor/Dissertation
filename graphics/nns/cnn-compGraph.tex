@@ -1,0 +1,57 @@
+\documentclass[border=0.125cm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{ifthen}
+\usetikzlibrary{matrix,arrows.meta,quotes,shadows,decorations.pathreplacing,positioning,fadings}
+\usepackage{cfr-lm}
+\usetikzlibrary{shapes.misc}
+
+\begin{document}
+	\tikzset{
+		module/.style = {
+			draw,
+			rounded rectangle,
+			fill=white
+		},
+		reg module/.style = {
+			draw,
+			rounded rectangle,
+			fill=blue!20
+		},
+		param/.style = {
+			draw,
+			circle,
+			minimum size = .25cm,
+			fill=white
+		},
+		reg param/.style = {
+			draw,
+			circle, 
+			minimum size = .25cm,
+			fill=blue!20
+		},
+		edge/.style = {
+			->
+		}
+	}
+	\begin{tikzpicture}
+		\node[param] (input) at (0,0){\LARGE $\mathbf{X}$};
+		\node[param] (kernel) at (-2, 1) {kernel};
+		\node[reg module] (MatMul) at (-1, 3) {MatMul};
+		
+		\draw[edge] (input) -- (MatMul);
+		\draw[edge] (kernel) -- (MatMul);
+
+		\node (in) at (0, -2) {};
+		\node (out) at (-1, 6) {};
+		
+		\draw[edge] (in) -- (input);
+		\draw[edge] (MatMul) -- (out); 
+		
+		\node () at (0,-2.1) {Ouputs of};
+		\node () at (0, -2.5) {previous layer};
+		
+		\node () at (-1, 6.5) {Output of};
+		\node () at (-1, 6.1) {convolutional layer};
+ 	\end{tikzpicture}
+\end{document}

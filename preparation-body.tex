@@ -306,7 +306,21 @@
 	\textbf{Mini-batch gradient descent} is a variation of gradient descent that splits the training set into small batches $\mathfrak{B}=\{(\mathbf{x}_1, \mathbf{y}_1)\dots(\mathbf{x}_l, \mathbf{y}_l)\}$. Each batch $\mathfrak{B}$ is used to calculate the loss function and update model coefficients. The coefficients update frequency is higher than classical gradient descent which allows for a more robust convergence, avoiding local minima. 
 	
 	\subsection{Convolutional Neural Networks} 
-		
+	Classically, Convolutional Neural Networks(CNNs) are used in tasks such as computer vision or natural language processing. One-dimensional CNNs, though, have proven to be effective for non-spatial data, as well, by identifying relations between the features from the input feature vectors. For this reason, I considered this as a potential model in my project. 
+	\\ \\
+	Conceptually, a CNN is quite similar to the MLP from the previous section: they are both made up of neurons that have learnable weights and biases. The key difference between the two is the fact that, on top of the classical layers of the MLP. CNNs also involve \textbf{convolutional layers} in order to identify relations between features in a subarea of the feature vector. 
+	
+	\subsubsection*{Convolutional layer}
+	The idea behind the convolutional layer comes from digital signal processing, namely the \textbf{discrete convolution} operation, which can also be thought of as a way to cross-correlate two sequences. For two sequences $f \text{and} g$, their convolution is:
+	\begin{equation}
+		(f*g)[n] = \sum_{m-M}^{M} f[n-m] g[m]
+	\end{equation}
+	The 1D convolutional layer uses a fixed size kernel $\mathbf{k} \in \mathbb{R}^a$ that is convolved with successive sections of the input vector $\mathbf{x}\in\mathbb{R}^d$ having length $a$. 
+	\begin{figure}[H]
+		\centering
+		\caption{1D Convolution}
+		\label{Fig: prep/ml/cnn/convoLayer}
+	\end{figure}
 	\subsection{Graph Attention Network}	
 	This section describes Graph Attention Networks (GATs), bleeding-edge neural network architectures that operate on graph-structured data (as described by Veli\v{c}kovi\v{c} et al., 2018). It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT). One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
 	\\ \\ 
