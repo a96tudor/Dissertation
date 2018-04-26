@@ -307,7 +307,57 @@
 	\textbf{Mini-batch gradient descent} is a variation of gradient descent that splits the training set into small batches $\mathfrak{B}=\{(\mathbf{x}_1, \mathbf{y}_1)\dots(\mathbf{x}_l, \mathbf{y}_l)\}$. Each batch $\mathfrak{B}$ is used to calculate the loss function and update model coefficients. The coefficients update frequency is higher than classical gradient descent which allows for a more robust convergence, avoiding local minima. 
 	
 	\subsection{Convolutional Neural Networks} 
-		
+	Classically, Convolutional Neural Networks(CNNs) are used in tasks such as computer vision or natural language processing. One-dimensional CNNs, though, have proven to be effective for non-spatial data, as well, by identifying relations between the features from the input feature vectors. For this reason, I considered this as a potential model in my project. 
+	\\ \\
+	Conceptually, a CNN is quite similar to the MLP from the previous section: they are both made up of neurons that have learnable weights and biases. The key difference between the two is the fact that, on top of the classical layers of the MLP. CNNs also involve \textbf{convolutional layers} in order to identify relations between features in a subarea of the feature vector. 
+	
+	\subsubsection*{Convolutional layer}
+	The main purpose of the convolutional layer is to extract relationships between the features from an input vector. It uses a fix-sized kernel $\mathbf{w} \in \mathbb{R}^k$, that slides over the input vector $\mathbf{x}\in\mathbb{R}^d$ and computes a linear transformation for every patch of size $k$. The output of the convolutional layer is a new vector $\mathbf{y}\in\mathbb{R}^n$, where $n=d - k + 1$. The values of each element in the output vector is given by the equation:
+	\begin{equation}
+		y_i = \mathbf{w}^T\mathbf{x}_{i:i+k-1}
+	\end{equation}
+	where $\mathbf{x}_{a:b}$ represents the sub-vector containing all elements $x_i. \forall a\leq i \geq b$. Figure \ref{Fig: prep/ml/cnn/convoLayer} shows the step-by-step construction of the output vector.
+	\begin{figure}[H]
+		\centering
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{graphics/nns/conv/1}
+			\vspace*{1cm}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{graphics/nns/conv/2}
+			\vspace*{1cm}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{graphics/nns/conv/3}
+			\vspace*{1cm}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{graphics/nns/conv/4}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{graphics/nns/conv/5}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.3\linewidth}
+			\includegraphics[width=\linewidth]{graphics/nns/conv/6}
+		\end{subfigure}
+		\caption[1D Convolution]{Step-by-step example of 1D convolution with a $1\times3$ kernel}
+		\label{Fig: prep/ml/cnn/convoLayer}
+	\end{figure}
+	In order to add further nonlinearity and prevent the overfitting of the model, one may also use an activation function $\sigma$ when computing the final outputs of the layer. Furthermore, in order to manipulate the length of the output vector, we can also use \textbf{zero-padding}, which simply pads the input vector with zeros, such that the output preserves its length.
+	\\ \\
+	\textbf{Dilated convolution}(Figure \ref{Fig: prep/ml/cnn/dilated}) is a technique that increases the receptive (global) view of the network exponentially and has proven extremely effective in tasks such as context and text-to-speech resolution. In this case, the filter (kernel) is applied over a larger area than its length by skipping input values with a certain step, called \textit{dilation field}. Exponentially increasing the dilation rate results in an exponential field growth in depth.  
+	\\ \\
+	Conceptually, dilated convolution is a simple by effective idea when it comes to detection of fine-grained details by processing inputs in higher resolutions. For this reason, I have considered applying this approach to the problem at hand.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.8\textwidth]{graphics/nns/conv/dilated}
+		\caption[Dilated convolution]{Dilated convolution schema reproduced from ADD HERE!!!!!!!!!!!}
+		\label{Fig: prep/ml/cnn/dilated}
+	\end{figure}
+	
+	Following the convolutional layer(s), a CNN normally has a one or more fully connected layers that process the outputs and return either a probability distribution (for classification) or a single value (in the case of regression).  
+	
 	\subsection{Graph Attention Network}	
 	This section describes Graph Attention Networks (GATs), bleeding-edge neural network architectures that operate on graph-structured data (as described by Veli\v{c}kovi\v{c} et al., 2018). It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT). One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
 	\\ \\ 
