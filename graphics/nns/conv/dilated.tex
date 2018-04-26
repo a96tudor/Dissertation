@@ -1,0 +1,205 @@
+\documentclass[border=0.125cm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{ifthen}
+\usetikzlibrary{matrix,arrows.meta,quotes,shadows,decorations.pathreplacing,positioning,fadings}
+\usepackage{cfr-lm}
+\usepackage[nomessages]{fp}% http://ctan.org/pkg/fp
+\usepackage{forest}
+
+\colorlet{mewnol}{blue!75!cyan}%
+\colorlet{allanol}{blue!50!black}%
+
+\begin{document}
+	
+	\tikzset{
+		neuron/.style={
+			circle,
+			draw,
+			minimum size=0.5cm,
+			line width = 0.5pt,
+			inner sep=.25cm
+		},
+		edge/.style={
+			dotted
+		},
+		bold edge/.style={
+			-latex,
+			thick,
+		},
+	}
+	
+	\begin{tikzpicture}
+		\node () at (18, 0) {\textbf{Input layer}};
+		\node () at (18, 2.2) {\textbf{Hidden layer $1$}};
+		\node () at (18, 1.8) {Dilation $=1$};
+ 	 	\node () at (18, 4.2) {\textbf{Hidden layer $2$}};
+ 	 	\node () at (18, 3.8) {Dilation $=2$};
+ 	 	\node () at (18, 6.2) {\textbf{Hidden layer $3$}};
+ 	 	\node () at (18, 5.8) {Dilation $=4$};
+ 	 	 \node () at (18, 8.2) {\textbf{Output layer}};
+ 	 	\node () at (18, 7.8) {Dilation $=8$};
+		\foreach \m in {1,...,16}
+		{
+			\node[fill=blue!50, neuron] (input-\m-node) at (0+\m, 0) {};
+			\node[neuron] (hidden1-\m-node) at (0+\m, 2) {};
+			\node[neuron] (hidden2-\m-node) at (0+\m, 4) {};
+			\node[neuron] (hidden3-\m-node) at (0+\m, 6) {};
+			\node[neuron, fill=orange!50] (output-\m-node) at (0+\m, 8) {};
+		}
+	
+		\node (hidden1-high-dummy) at (16.3,3.2) {};
+		\node (hidden2-low-dummy2) at (0.7,2.8) {};
+		
+		\node (hidden2-high-dummy1) at (16.3, 5.4) {};
+		\node (hidden2-high-dummy2) at (16.3, 5.1) {};
+		\node (hidden2-high-dummy3) at (16.3, 4.75) {};
+		
+		\node (hidden3-low-dummy1) at (0.7, 4.61) {};
+		\node (hidden3-low-dummy2) at (0.7, 5) {};
+		\node (hidden3-low-dummy3) at (0.7, 5.3) {};
+		
+		\node (hidden3-high-dummy1) at (16.3, 7.5) {};
+		\node (hidden3-high-dummy2) at (16.3, 7.35) {};
+		\node (hidden3-high-dummy3) at (16.3, 7.20) {};
+		\node (hidden3-high-dummy4) at (16.3, 7.05) {};
+		\node (hidden3-high-dummy5) at (16.3, 6.9) {};
+		\node (hidden3-high-dummy6) at (16.3, 6.75) {};
+		\node (hidden3-high-dummy7) at (16.3, 6.6) {};
+	
+		\node (output-low-dummy1) at (0.7, 6.5) {};
+		\node (output-low-dummy2) at (0.7, 6.7) {};
+		\node (output-low-dummy3) at (0.7, 6.9) {};
+		\node (output-low-dummy4) at (0.7, 7.1) {};
+		\node (output-low-dummy5) at (0.7, 7.3) {};
+		\node (output-low-dummy6) at (0.7, 7.5) {};
+		\node (output-low-dummy7) at (0.7, 7.7) {};
+		
+		\foreach \m in {1,...,16}
+		{
+			\draw[edge] (input-\m-node) -- (hidden1-\m-node);
+			\draw[edge] (hidden1-\m-node) -- (hidden2-\m-node);
+			\draw[edge] (hidden2-\m-node) -- (hidden3-\m-node);
+			\draw[edge] (hidden3-\m-node) -- (output-\m-node);
+    	}
+    
+	    % INPUT-HIDDEN1
+    
+	    \draw[edge] (input-1-node.north) -- (hidden1-2-node.south);
+		\draw[edge] (input-2-node.north) -- (hidden1-3-node.south);
+		\draw[edge] (input-3-node.north) -- (hidden1-4-node.south);
+		\draw[edge] (input-4-node.north) -- (hidden1-5-node.south);
+		 \draw[edge] (input-5-node.north) -- (hidden1-6-node.south);
+		 \draw[edge] (input-6-node.north) -- (hidden1-7-node.south);
+		 \draw[edge] (input-7-node.north) -- (hidden1-8-node.south);
+		 \draw[edge] (input-8-node.north) -- (hidden1-9-node.south);
+		 \draw[edge] (input-9-node.north) -- (hidden1-10-node.south);
+		 \draw[edge] (input-10-node.north) -- (hidden1-11-node.south);
+		 \draw[edge] (input-11-node.north) -- (hidden1-12-node.south);
+		 \draw[edge] (input-12-node.north) -- (hidden1-13-node.south);
+		 \draw[edge] (input-13-node.north) -- (hidden1-14-node.south);
+		 \draw[edge] (input-14-node.north) -- (hidden1-15-node.south);
+		 \draw[edge] (input-15-node.north) -- (hidden1-16-node.south);
+		 
+		 \draw[bold edge] (input-1-node.north) -- (hidden1-2-node.south);
+		 \draw[bold edge] (input-2-node.north) -- (hidden1-2-node.south);
+		 \draw[bold edge] (input-3-node.north) -- (hidden1-4-node.south);
+		 \draw[bold edge] (input-4-node.north) -- (hidden1-4-node.south);
+		 \draw[bold edge] (input-5-node.north) -- (hidden1-6-node.south);
+		 \draw[bold edge] (input-6-node.north) -- (hidden1-6-node.south);
+		 \draw[bold edge] (input-7-node.north) -- (hidden1-8-node.south);
+		 \draw[bold edge] (input-8-node.north) -- (hidden1-8-node.south);
+		 \draw[bold edge] (input-9-node.north) -- (hidden1-10-node.south);
+		 \draw[bold edge] (input-10-node.north) -- (hidden1-10-node.south);
+		 \draw[bold edge] (input-11-node.north) -- (hidden1-12-node.south);
+		 \draw[bold edge] (input-12-node.north) -- (hidden1-12-node.south);
+		 \draw[bold edge] (input-13-node.north) -- (hidden1-14-node.south);
+		 \draw[bold edge] (input-14-node.north) -- (hidden1-14-node.south);
+		 \draw[bold edge] (input-15-node.north) -- (hidden1-16-node.south);
+		 \draw[bold edge] (input-16-node.north) -- (hidden1-16-node.south);
+		 
+		% HIDDEN1 - HIDDEN2
+		
+		\draw[edge] (hidden2-low-dummy2) -- (hidden2-2-node.south);
+		\draw[edge] (hidden1-1-node.north) -- (hidden2-3-node.south);
+		\draw[edge] (hidden1-2-node.north) -- (hidden2-4-node.south);
+		\draw[edge] (hidden1-3-node.north) -- (hidden2-5-node.south);
+		\draw[edge] (hidden1-4-node.north) -- (hidden2-6-node.south);
+		\draw[edge] (hidden1-5-node.north) -- (hidden2-7-node.south);
+		\draw[edge] (hidden1-6-node.north) -- (hidden2-8-node.south);
+		\draw[edge] (hidden1-7-node.north) -- (hidden2-9-node.south);
+		\draw[edge] (hidden1-8-node.north) -- (hidden2-10-node.south);
+		\draw[edge] (hidden1-9-node.north) -- (hidden2-11-node.south);
+		\draw[edge] (hidden1-10-node.north) -- (hidden2-12-node.south);
+		\draw[edge] (hidden1-11-node.north) -- (hidden2-13-node.south);
+		\draw[edge] (hidden1-12-node.north) -- (hidden2-14-node.south);
+		\draw[edge] (hidden1-13-node.north) -- (hidden2-15-node.south);
+		\draw[edge] (hidden1-14-node.north) -- (hidden2-16-node.south);
+		\draw[edge] (hidden1-15-node.north) -- (hidden1-high-dummy);
+		
+
+		\draw[bold edge] (hidden1-2-node.north) -- (hidden2-4-node.south);
+		\draw[bold edge] (hidden1-4-node.north) -- (hidden2-4-node.south);
+		\draw[bold edge] (hidden1-6-node.north) -- (hidden2-8-node.south);
+		\draw[bold edge] (hidden1-8-node.north) -- (hidden2-8-node.south);
+		\draw[bold edge] (hidden1-10-node.north) -- (hidden2-12-node.south);
+		\draw[bold edge] (hidden1-12-node.north) -- (hidden2-12-node.south);
+		\draw[bold edge] (hidden1-14-node.north) -- (hidden2-16-node.south);
+		\draw[bold edge] (hidden1-16-node.north) -- (hidden2-16-node.south);
+		
+		%HIDDEN2 - HIDDEN3
+		\draw[edge] (hidden2-1-node.north) -- (hidden3-5-node.south);
+		\draw[edge] (hidden2-2-node.north) -- (hidden3-6-node.south);
+		\draw[edge] (hidden2-3-node.north) -- (hidden3-7-node.south);
+		\draw[edge] (hidden2-4-node.north) -- (hidden3-8-node.south);
+		\draw[edge] (hidden2-5-node.north) -- (hidden3-9-node.south);
+		\draw[edge] (hidden2-6-node.north) -- (hidden3-10-node.south);
+		\draw[edge] (hidden2-7-node.north) -- (hidden3-11-node.south);
+		\draw[edge] (hidden2-8-node.north) -- (hidden3-12-node.south);
+		\draw[edge] (hidden2-9-node.north) -- (hidden3-13-node.south);
+		\draw[edge] (hidden2-10-node.north) -- (hidden3-14-node.south);
+		\draw[edge] (hidden2-11-node.north) -- (hidden3-15-node.south);
+		\draw[edge] (hidden2-12-node.north) -- (hidden3-16-node.south);
+		
+		\draw[edge] (hidden2-13-node.north) -- (hidden2-high-dummy1);
+		\draw[edge] (hidden2-14-node.north) -- (hidden2-high-dummy2);
+		\draw[edge] (hidden2-15-node.north) -- (hidden2-high-dummy3);
+		
+		\draw[edge] (hidden3-4-node.south) -- (hidden3-low-dummy1);
+		\draw[edge] (hidden3-3-node.south) -- (hidden3-low-dummy2);
+		\draw[edge] (hidden3-2-node.south) -- (hidden3-low-dummy3);
+		
+		\draw[bold edge] (hidden2-4-node.north) -- (hidden3-8-node.south);
+		\draw[bold edge] (hidden2-8-node.north) -- (hidden3-8-node.south);
+		\draw[bold edge] (hidden2-12-node.north) -- (hidden3-16-node.south);
+		\draw[bold edge] (hidden2-16-node.north) -- (hidden3-16-node.south);
+		
+		% HIDDEN3 - OUTPUT
+		\draw[edge] (hidden3-1-node.north) -- (output-9-node.south);
+		\draw[edge] (hidden3-2-node.north) -- (output-10-node.south);
+		\draw[edge] (hidden3-3-node.north) -- (output-11-node.south);
+		\draw[edge] (hidden3-4-node.north) -- (output-12-node.south);
+		\draw[edge] (hidden3-5-node.north) -- (output-13-node.south);
+		\draw[edge] (hidden3-6-node.north) -- (output-14-node.south);
+		\draw[edge] (hidden3-7-node.north) -- (output-15-node.south);
+		\draw[edge] (hidden3-8-node.north) -- (output-16-node.south);
+		
+		\draw[edge] (hidden3-9-node.north) -- (hidden3-high-dummy1);
+		\draw[edge] (hidden3-10-node.north) -- (hidden3-high-dummy2);
+		\draw[edge] (hidden3-11-node.north) -- (hidden3-high-dummy3);
+		\draw[edge] (hidden3-12-node.north) -- (hidden3-high-dummy4);
+		\draw[edge] (hidden3-13-node.north) -- (hidden3-high-dummy5);
+		\draw[edge] (hidden3-14-node.north) -- (hidden3-high-dummy6);
+		\draw[edge] (hidden3-15-node.north) -- (hidden3-high-dummy7);
+		
+		\draw[edge] (output-8-node.south) -- (output-low-dummy1);
+		\draw[edge] (output-7-node.south) -- (output-low-dummy2);
+		\draw[edge] (output-6-node.south) -- (output-low-dummy3);
+		\draw[edge] (output-5-node.south) -- (output-low-dummy4);
+		\draw[edge] (output-4-node.south) -- (output-low-dummy5);
+		\draw[edge] (output-3-node.south) -- (output-low-dummy6);
+
+		\draw[bold edge] (hidden3-8-node.north) -- (output-16-node.south);
+		\draw[bold edge] (hidden3-16-node.north) -- (output-16-node.south);
+	\end{tikzpicture} 
+\end{document}
