@@ -1,9 +1,9 @@
 \begin{document}
 	\chapter{Preparation}
-	In this chapter, I will explain all the work completed before any code was written. This includes a discussion on the structure of the data and the decisions made for pre-processing it (section \ref{2.1}), the theory behind the models that were implemented (section \ref{2.2}) and an outline of the server architecture (section \ref{2.3}) as well as the requirements analysis and software engineering principles applied for a successful implementation(section \ref{2.4}).
+	In this chapter, I will explain all the work completed before any code was written. This includes a discussion on the structure of the data and the decisions made for pre-processing it (section \ref{Section 2.1}), the theory behind the models that were implemented (section \ref{2.2}) and an outline of the server architecture (section \ref{Section 2.3}) as well as the requirements analysis and software engineering principles applied for a successful implementation(section \ref{Section 2.4}).
 	
 	\section{Data analysis} \label{Section 2.1}
-	This section describes the raw data used by the CADETS user interface and how it is preprocessed in order to be used by the machine learning models described in section \ref{2.2}.
+	This section describes the raw data used by the CADETS user interface and how it is preprocessed in order to be used by the machine learning models described in section \ref{Section 2.2}.
 	\\ \\
 	The data used by the CADETS UI is stored in a Neo4J\footnotemark[1] graph database. This gives a simple and straightforward representation of the OS-level abstractions we want to store as well as of their relationships.
 
@@ -12,35 +12,38 @@
 	\subsection{Data structure analysis} \label{Section: prep/datastructure}
 	The data is stored as a graph, consisting of nodes and edges. Here, nodes represent the actors(processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(id, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
 	\\ \\
-	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of nodes' frequencies. The 'Meta' nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the 'File' nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a biast classifier (i.e. a model that classifies 'File' nodes correctly and misclassifies the other node types). 
+	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of nodes' frequencies. The 'Meta' nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the 'File' nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a bias classifier (i.e. a model that classifies 'File' nodes correctly and misclassifies the other node types). 
 	\begin{figure}[H]
 		\centering
-		\label{Figure 2.1.1}
+
 		\includegraphics[width=0.7\textwidth]{graphics/node-freq-graph}
 		\caption[\textbf{Log-scale node frequency}]{
 			Bar chart above showing the log-scale node frequency in a database of $1,402,053$ nodes and $2,090,741$ edges. 
 		}
+		\label{Figure 2.1.1}
 	\end{figure}
 	Relationships between nodes are illustrated by different types of edges. Some edges also illustrate how an object (File, Socket, etc.) evolves over time. This is done using the \textit{GLOB\_OBJ\_PREV} edge and helps us to easily visualize the different versions of an object.
 	\begin{figure}[H]
 		\centering
-		\label{Figure 2.1.2}
+
 		\includegraphics[width=0.7\textwidth]{graphics/GLOB_OBJ_PREV}
 		\caption{
 			Two versions of the same file connected via a GLOB\_OBJ\_PREV edge.
 		}
+		\label{Figure 2.1.2}
 	\end{figure}
 	A number of the edge types also use a \textit{state} field, in order to provide further information regarding the relationship between two nodes. For example, in the case of a \textit{PROC\_OBJ} edge connecting a File to a Process, the \textit{state} field is used to show whether the Process reads/ writes to the File or if the File is the binary the Process is executed from. \textit{PROC\_OBJ} edges also connect Processes to Sockets. Here, the \textit{state} field can take values such as: \textit{Server} (if the Process uses the Socket to accept new connections), \textit{Client} (if the Process uses to Socket to connect to a different Process that acts as a server - which may or may not be on a different machine)  and \textit{RaW} (if the Process also reads and writes through the Socket).
 	\begin{figure}[H]
 		\centering
-		\label{Figure 2.1.3}
+		
 		\includegraphics[width=0.7\textwidth]{graphics/node_degree_hist}
 		\caption[Log-scale distribution of node degrees]{
 			Log-scale histogram showing the distribution of node degrees, using the same graph as the one from Figure \ref{Figure 2.1.1} as source(i.e. $1,402,053$ nodes and $2,090,741$ edges).
 		}
+		\label{Figure 2.1.3}
 	\end{figure}
 	 
-	 The graphs resulting from tracing are very sparse, with a number of edges almost equal to the number of nodes. This observation is also sustained by the histogram in Figure \ref{Figure 2.1.3}, where we can observe that most of the nodes have degrees between 0 and 10, while there also are a few nodes with a very high degree (up to $60, 000$).
+	 The graphs resulting from tracing are very sparse, with a number of edges almost equal to the number of nodes. This observation is also sustained by the histogram in Figure \ref{Figure 2.1.3}, where we can observe that most of the nodes have degrees between 0 and 10, while there also are a few nodes with a very high degree (up to $60, 000$). Therefore, the degrees of the nodes encountered in the database follow a power-law distribution\cite{Clauset:2009:PDE:1655787.1655789}.
 	 
 	\subsection{Ground truths} \label{Section: prep/data/ground-truths}
 	In order to apply appropriate supervised learning algorithms, I had to build a labelled dataset of nodes from the raw data stored in graph format. This required setting a number of \textit{ground truths} of what a node of interest is. 
@@ -73,7 +76,10 @@
 	
 		\item \textbf{Processes that writes to files in suspicious locations: }Here, I define the term of \textit{suspicious location} as being a location that is essential to the running of the system. These locations include:  \textit{/bin, /etc, /lib, /usr/bin, /usr/lib, /boot, /root, /dev, /etc/pwd}.
 	\end{enumerate}
-	\subsection{Data preprocessing}
+	These rules only represent a suitable starting point for the tool implemented here. In practice, though, I would expect my model to be driven by past analyst observations and interactions in the UI. This is a fact I kept in mind when considering various machine learning models, in order to try to create ones that can be updated given analyst input.
+	\\ \\
+	By setting these ground-truths, this project is also exploring whether the various machine learning algorithms implemented as part of this project can easily learn a number of patterns in the same time.
+	\subsection{Data preprocessing} \label{Section: prep/data/feature-vectors}
 	The implemented machine learning models only look at 3 of the 6 types of nodes: \textbf{File}, \textbf{Process} and \textbf{Socket} nodes. 
 	\\ \\
 	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. Furthermore, for graph-specific models (such as Graph Attention Networks, described in section \ref{Section 2.2.4})  I also built the adjacency matrix of the given graph. 
@@ -133,11 +139,8 @@
 
 
 	\section{Machine learning models} \label{Section 2.2}
-	This section describes the underlying theory of the machine learning models explored as part of this project. 
+	This section describes the underlying theory of the machine learning models explored as part of this project and how they can be applied to the data I am working on.
 
-	\subsection{Supervised learning} \label{Section 2.2.1}
-	In supervised learning, classification models require la labelled training set, where each feature vector $\mathbf{x} \in \mathbb{R}^n$ has an associated label $y$, which represents one of the possible output classes $\mathcal{C} = \{ C_1, C_2 \dots C_k \}$.
-	
 	\subsection{Supervised learning using neural networks} \label{Section 2.2.2}
 	Given a training sequence $\mathbf{s} = [(\mathbf{x_1}, y_1), (\mathbf{x_2}, y_2) \dots (\mathbf{x_m}, y_m)]$, a neural network learns a hypothesis $h: \mathbb{R}^n \rightarrow \mathcal{C}$ that maps an input feature vector $\mathbf{x}$ to its corresponding label $y$. 
 	\\ \\
@@ -145,107 +148,96 @@
 	\\ \\
 	A \textbf{loss function} is usually defined to measure some notion of the neural network's error when estimating $y$ from $\mathbf{x}$, given $\mathbf{w}$ and $\mathbf{b}$. The training step involves an optimisation algorithm which aims at finding $\mathbf{w}$ and $\mathbf{b}$ such that the loss function is minimized. 
 	
-	\subsubsection{Artificial neuron}	\label{Section 2.2.2.1}
-	
-	
-	An artificial neuron (as shown in Figure \ref{Figure 2.5}) computes a linear combination of the input features and applies an activation function $\sigma: \mathbb{R} \rightarrow \mathbb{R}$ to it.  The output of the neuron will be: 
-	
-	\begin{equation}
-		y = \sigma(b + \sum_{i=1}^{n} w_i x_i) = \sigma(b + \mathbf{w}^T\mathbf{x})
-	\end{equation}
-	
-	where $\mathbf{x}^T = [x_1 x_2 \dots x_n]$ is the input feature vector, $\mathbf{w}^T = [w_1 w_2 \dots w_n]$ is the vector of weights and b is the bias. 
-	
-	\begin{figure}[H]
-		\centering
+ 	\subsubsection{Multilayer perceptron}  \label{Section 2.2.2.2}
+	Neural network architectures consist of multiple interconnected artificial neurons in order to infer complex functions. The mutilayer perceptron (MLP) represents a class of feedforward artificial neural networks (ANN) where the neurons are arranged in three or more layers (as shown in Figure \ref{Fig: prep/ml/mlp/mlp}). MLPs are \textbf{fully connected}; that is each neuron in one layer connects to every neuron in the following layer with a certain weight $w_{i, j}$
 
-		\includegraphics[width=0.7\textwidth]{graphics/nns/single_neuron}
-		\caption[\textbf{Artificial neuron}]{
-			Figure showing a single artificial neuron. 
-		}
-		\label{Figure 2.5}
-	\end{figure}
-	
-	The main purpose of the activation function is to map the results of the linear combination of the input features onto a desired (finite) range. It is desirable for the activation function to be continuously differentiable for enabling gradient-based optimisation methods. Some frequently encountered activations functions are:
-	\begin{enumerate}
-		\item the \textbf{linear function}
-					\begin{equation}
-						\sigma(x) = cx 
-					\end{equation}
-				where $c \in \mathbb{R}$ is a constant. 
-		
-		\item the \textbf{sigmoid function}
-					\begin{equation}
-						\sigma(x) = \frac{1}{1+e^{-x}}
- 					\end{equation}
- 					
-	 	\item the \textbf{tanh function}
-				 	\begin{equation}
-					 	\sigma(x) = \tanh(x) = \frac{2}{1+e^{-2x}} - 1
-				 	\end{equation}
-					Essentially, the $\tanh$ function is a scaled sigmoid function. It can be re-written as: $\tanh(x) = 2 \times \text{sigmoid}(2x) - 1$ 
-					
-		\item the \textbf{rectified linear unit (ReLU) function}
-					\begin{equation}
-						\sigma(x) = 
-							\begin{cases}
-								0 & \text{if } x < 0 \\
-								x & \text{if } x \geq 0
-							\end{cases}
-					\end{equation}
-		
-		\item the \textbf{leaky rectified linear unit (LReLU) function}
-					\begin{equation}
-						\sigma(x) = 
-						\begin{cases}
-							0.001x & \text{if } x < 0 \\
-							x & \text{if } x \geq 0
-					\end{cases}
-					\end{equation}
-	\end{enumerate} 
- 
-	Even though the hyperbolic tangent function ($\tanh$) function used to be the typical choice in neural networks, recent work has shown improvement with the ReLU function. This happens because sigmoidal neural networks can suffer from the \textit{vanishing gradient} problem. These occur when lower layers of the neural network have gradients of nearly 0 because higher layer units are already saturated at $-1$ or $1$, the asymptotes of the $\tanh$ function. Moreover, the LReLU function has a non-zero gradient over its entire domain, unlike the standard ReLU function. Figure \ref{Figure 2.6} shows these three activation functions and their derivatives.
-	
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=0.7\textwidth]{graphics/nns/activations}
-		
-		\caption[Activation functions]{The $\tanh$, ReLU and LReLU functions and their derivatives}
-		\label{Figure 2.6}
-	\end{figure}
-
-	Generally, steeper gradients such as the ones of ReLU and LReLU will cause the optimisation algorithm to converge faster to a solution.
- 	
-	
-	
-	
-	\subsubsection{Multilayer perceptron}  \label{Section 2.2.2.2}
-	Neural network architectures consist of multiple interconnected artificial neurons in order to infer complex functions. The mutilayer perceptron (MLP) represents a class of feedforward artificial neural networks (ANN) where the neurons are arranged in three or more layers (as shown in Figure \ref{Figure 2.7}).  MLPs are \textbf{fully connected}; that is each neuron in one layer connects to every neuron in the following layer with a certain weight $w_{i, j}$. 
-	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.7\textwidth]{graphics/nns/multilayer}
 		\caption[Multilayer perceptron]{
 			Figure showing a 2-layer neural network.
 		}
-		\label{Figure 2.7}	
+		\label{Fig: prep/ml/mlp/mlp}	
 	\end{figure}	
+
+	 Each layer of the MLP consists of a number of neurons(Figure \ref{Fig: prep/ml/mlp/neuron}). For an input vector $\mathbf{x}\in\mathbb{R}^d$, a weight vector $\mathbf{w}\in\mathbb{R}^d$, and a biast $b$, a neuron computes the output $y = \sigma(b + \sum_{i=1}^{d} w_i x_i)$, where $\sigma$ is an \textit{activation function}.
 	
-	As shown by Cybenko's theorem, MLPs are universal function approximators, so that they can be used to create mathematical models by regression analysis. Considering the fact that classification is a particular case of regression where the response variable is categorical, we can infer that MLPs make good classifier algorithms. 
+	\begin{figure}[H]
+		\centering
+		
+		\includegraphics[width=0.7\textwidth]{graphics/nns/single_neuron}
+		\caption[\textbf{Artificial neuron}]{
+			Figure showing a single artificial neuron. 
+		}
+		\label{Fig: prep/ml/mlp/neuron}
+	\end{figure}
+	\subsubsection*{Activation functions}
+	The main purpose of using an activation function $\sigma$ is to map the output of the linear combination of input features onto a desired (finite) range. Moreover, choosing the appropriate activation function can speed up the training process and even help us avoid the overfitting problem. Some frequently encountered activations functions are:
+	\begin{enumerate}
+		\item the \textbf{linear function}
+		\begin{equation}
+		\sigma(x) = cx 
+		\end{equation}
+		where $c \in \mathbb{R}$ is a constant. 
+		
+		\item the \textbf{sigmoid function}
+		\begin{equation}
+		\sigma(x) = \frac{1}{1+e^{-x}}
+		\end{equation}
+		
+		\item the \textbf{tanh function}
+		\begin{equation}
+		\sigma(x) = \tanh(x) = \frac{2}{1+e^{-2x}} - 1
+		\end{equation}
+		Essentially, the $\tanh$ function is a scaled sigmoid function. It can be re-written as: $\tanh(x) = 2 \times \text{sigmoid}(2x) - 1$ 
+		
+		\item the \textbf{rectified linear unit (ReLU) function}
+		\begin{equation}
+		\sigma(x) = 
+		\begin{cases}
+		0 & \text{if } x < 0 \\
+		x & \text{if } x \geq 0
+		\end{cases}
+		\end{equation}
+		
+		\item the \textbf{leaky rectified linear unit (LReLU) function}
+		\begin{equation}
+		\sigma(x) = 
+		\begin{cases}
+		0.001x & \text{if } x < 0 \\
+		x & \text{if } x \geq 0
+		\end{cases}
+		\end{equation}
+	\end{enumerate} 
+	In the past, the $\tanh$ used to be the activation function of choice in neural networks, but recent works\cite{nonlinearities} have shown that rectified nonlinearities (such as ReLU or LReLU) considerably improve the performance of the model. Figure \ref{Fig: prep/ml/mlp/activations} shows the graphs of three of the activation functions above ($\tanh$, ReLU and LReLU) and their derivatives.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.7\textwidth]{graphics/nns/activations}
+		
+		\caption[Activation functions]{The $\tanh$, ReLU and LReLU functions and their derivatives}
+		\label{Fig: prep/ml/mlp/activations}
+	\end{figure}
+	In general, neural networks are optimised using gradient-based algorithms. Therefore, activation functions with steeper gradients (such as ReLU and LReLU) tend to make the algorithm to converge faster.
+	
+	\subsubsection*{Using MLPs for classification}
+	In this project, I intend to classify nodes as being in one of two classes: \textit{SHOW} and \textit{HIDE}, based on the feature vectors described in Section \ref{Section: prep/data/feature-vectors}. Therefore, we are interested in seeing how an MLP can be used to solve classification problems. As shown by Cybenko's theorem\cite{sigmoidal}, MLPs are universal function approximators, so that they can be used to create mathematical models by regression analysis. Considering the fact that classification is a particular case of regression where the response variable is categorical, we can infer that MLPs make good classifier algorithms. 
 	\\ \\
-	Suppose the MLP has to learn to classify a feature vector $\mathbf{x} \in \mathbb{R}^n$ into a class $C_t$ from $\mathcal{C} = \{C_1\dots C_k\}$. In this case, we want the $t^{th}$ output neuron (i.e. $o_t$) to indicate this. A popular choice for this task is the \textbf{sigmoid function}, which transforms any k-dimensional vector $\mathbf{o}$ to the probability distribution:
+	Suppose the MLP has to learn to classify a feature vector $\mathbf{x} \in \mathbb{R}^d$ into a class $C_t$ from $\mathcal{C} = \{C_1\dots C_k\}$. In this case, we want the $t^{th}$ output neuron (i.e. $o_t$) to indicate this. A popular choice for this task is the \textbf{softmax function}, which transforms any k-dimensional vector $\mathbf{o}$ to the probability distribution:
 	\begin{equation}
 		\centering
-		sigmoid(\mathbf{o})_i = \frac{e^{o_i}}{\sum_{j=1}^{k}e^{o_j}}
+		\text{softmax}_i(\mathbf{o})_i = \frac{e^{o_i}}{\sum_{j=1}^{k}e^{o_j}}
 	\end{equation}
 	where: $\mathbf{o}^T = [o_1\dots o_k]$ is the vector of the output neurons. Thus, the probability of the input vector $\mathbf{x}$ being in class $C_t$ is given by:
 	\begin{equation}
 		\centering
-		\mathbb{P}(y = C_t | \mathbf{x}) = sigmoid(\mathbf{o})_t = \frac{e^{o_t}}{\sum_{j=1}^{k}e^{o_j}}
-		\label{Eq 2.8}
+		\begin{split}
+			\mathbb{P}(y = C_t | \mathbf{x}) & = \text{softmax}_i(\mathbf{o})_t \\
+			& = \frac{e^{o_t}}{\sum_{j=1}^{k}e^{o_j}}
+		\end{split}
+		\label{Eq: prep/ml/mlp/softmax}
 	\end{equation} 
 	
-	If we consider the hidden layer from Figure \ref{Figure 2.7} to use the ReLU activation function, we can re-write the equation \ref{Eq 2.8} in vector format as follows: 
+	If we consider the hidden layer from Figure \ref{Fig: prep/ml/mlp/mlp} to use the ReLU activation function, we can re-write the equation \ref{Eq: prep/ml/mlp/softmax} in vector format as follows: 
 	\begin{equation}
 		\centering
 		\mathbb{P}(y=C_t | \mathbf{x}) = \frac
@@ -259,57 +251,13 @@
 	
 	where $\mathbf{x}$ is the input feature vector.
 	
-	\subsubsection{Training the neural network} \label{Section 2.2.2.3}
-	The first step in training a neural network is initialising the weights and biases vectors: $\mathbf{w}$ and $\mathbf{b}$. How these vectors are initiated is usually dependent on the architecture. 
-	\\ \\
-	For a classification problem, each optimisation algorithm makes use of a training examples $\mathbf{s}=(\mathbf{X}, \mathbf{Y})$. Here, $\mathbf{X} = [\mathbf{x_1}\dots\mathbf{x_m}]$ is the matrix of training feature vectors, where $\mathbf{x_i}\in\mathbb{R}^n. \forall i \in \{1\dots m\}$ and $\mathbf{Y} = [\mathbf{y_1}\dots\mathbf{y_m}]$ is the matrix representing the corresponding class for every input feature vector, using one-hot encoding. For an input vector $\mathbf{x_i}$ in class $C_t$, the corresponding $\mathbf{y_i}$ will be:
-	\begin{equation}
-		\centering
-		\mathbf{y_i}^T = [y_{i, 1}\dots y_{i, k}]
-	\end{equation} 
-	where:
-	\begin{equation}
-		\centering
-		y_{i, j} = 
-		\begin{cases}
-			1 & \text{if } j = t \\
-			0 & \text{otherwise}
-		\end{cases}
-	\end{equation}
-	One of the most frequently encountered optimisation algorithms is \textbf{gradient descent}, an iterative algorithm that finds the optimal weights and biases by minimizing a given loss function $\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b})$. The choice of the loss function depends on the network infrastructure and the problem it is trying to solve. One of the most popular loss functions for classification problems is \textbf{cross-entropy}. It computes the difference between the true output distribution $\mathbf{y}_i$ and the neural network output distribution $\mathbf{\hat{y}}_i$, respectively:
-	\begin{equation}
-		\centering
-		\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b}) = -\sum_{j=1}^{k}y_{i,j}\log(\hat{y}_{i,j})
-	\end{equation}
-	The gradient descent algorithm then updates the weights and biases as follows: 
-	\begin{equation}
-		\centering
-		\mathbf{w}_{t+1} \leftarrow \mathbf{w}_t - \alpha \sum_{i=1}^{m}\frac{\partial \mathfrak{L}}{\partial \mathbf{w}}\Bigr|_{\substack{\mathbf{w}_t}}
-		\label{Eq 2.13}
- 	\end{equation}
- 	\begin{equation}
-	 	\centering
-	 	\mathbf{b}_{t+1} \leftarrow \mathbf{b}_t - \alpha \sum_{i=1}^{m}\frac{\partial \mathfrak{L}}{\partial \mathbf{b}}\Bigr|_{\substack{\mathbf{b}_t}}
-	 	\label{Eq 2.14}
- 	\end{equation}
- 	where $\mathbf{w}_t$ and $\mathbf{b}_t$ are the weights and biases at iteration t, $\mathfrak{L} = \mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}_t, \mathbf{b}_t)$ and $\alpha$ is the learning rate - a hyperparameter that decides the amount by which the direction of the gradient is followed at each iteration. The value of the learning rate impacts the behaviour of the optimisation algorithm. A high learning rate might cause the algorithm to never reach the minimum of the loss function. The lower it is, the slower we travel along the downwards slope of the loss function. Even though this ensures the fact that we don't miss any local minima, it can also mean that the algorithm will take a long time to converge - especially if it gets stuck on a plateau region. 
-	\\ \\
-	\textbf{Backpropagation} is the technique used to compute the gradient of the loss function with respect with the weights $\mathbf{w}$ and biases $\mathbf{b}$. The overall algorithm has two phases:
-	\begin{itemize}
-		\item Phase 1: \textbf{Propagation}
-		\begin{enumerate}
-			\item Propagate every training example $\mathbf{x}_i$ through the network to generate the output values $\mathbf{\hat{y}}_i$.
-			\item Calculate the loss function $\mathfrak{L}$.
-			\item Backpropagate the output activations back through the network using the training pattern in order to generate the gradients of all output and hidden neurons.
-		\end{enumerate}
-		\item Phase 2: \textbf{Weights and biases updating}, using the equations \ref{Eq 2.13} and \ref{Eq 2.14}
-	\end{itemize}
-	\textbf{Mini-batch gradient descent} is a variation of gradient descent that splits the training set into small batches $\mathfrak{B}=\{(\mathbf{x}_1, \mathbf{y}_1)\dots(\mathbf{x}_l, \mathbf{y}_l)\}$. Each batch $\mathfrak{B}$ is used to calculate the loss function and update model coefficients. The coefficients update frequency is higher than classical gradient descent which allows for a more robust convergence, avoiding local minima. 
+	\subsubsection*{Training the MLP}
+	Using a training sequence $\mathbf{s}$, the parameters of the MLP have to be optimised in order to be able to have a performant classifier. One of the most frequently used optimisation techniques is \textbf{gradient descent}, which updates the parameters iteratively, by moving in the direction of the gradient of a loss function. In a complex system, the gradient is calculated using \textbf{backpropagation}. This algorithm is described in detail in Appendix \ref{appendix-MLP-opt}. 
 	
 	\subsection{Convolutional Neural Networks} 
 	Classically, Convolutional Neural Networks(CNNs) are used in tasks such as computer vision or natural language processing. One-dimensional CNNs, though, have proven to be effective for non-spatial data, as well, by identifying relations between the features from the input feature vectors. For this reason, I considered this as a potential model in my project. 
 	\\ \\
-	Conceptually, a CNN is quite similar to the MLP from the previous section: they are both made up of neurons that have learnable weights and biases. The key difference between the two is the fact that, on top of the classical layers of the MLP. CNNs also involve \textbf{convolutional layers} in order to identify relations between features in a subarea of the feature vector. 
+	CNN make use of \textbf{convolutional layers} in order to identify relations between features in a subarea of the feature vector. 	Following these convolutional layer(s), a CNN normally has a one or more fully connected layers that process the outputs and return either a probability distribution (for classification) or a single value (in the case of regression).  
 	
 	\subsubsection*{Convolutional layer}
 	The main purpose of the convolutional layer is to extract relationships between the features from an input vector. It uses a fix-sized kernel $\mathbf{w} \in \mathbb{R}^k$, that slides over the input vector $\mathbf{x}\in\mathbb{R}^d$ and computes a linear transformation for every patch of size $k$. The output of the convolutional layer is a new vector $\mathbf{y}\in\mathbb{R}^n$, where $n=d - k + 1$. The values of each element in the output vector is given by the equation:
@@ -345,21 +293,21 @@
 	\end{figure}
 	In order to add further nonlinearity and prevent the overfitting of the model, one may also use an activation function $\sigma$ when computing the final outputs of the layer. Furthermore, in order to manipulate the length of the output vector, we can also use \textbf{zero-padding}, which simply pads the input vector with zeros, such that the output preserves its length.
 	\\ \\
-	\textbf{Dilated convolution}(Figure \ref{Fig: prep/ml/cnn/dilated}) is a technique that increases the receptive (global) view of the network exponentially and has proven extremely effective in tasks such as context and text-to-speech resolution. In this case, the filter (kernel) is applied over a larger area than its length by skipping input values with a certain step, called \textit{dilation field}. Exponentially increasing the dilation rate results in an exponential field growth in depth.  
+	\textbf{Dilated convolution}(Figure \ref{Fig: prep/ml/cnn/dilated}) is a technique that increases the receptive (global) view of the network exponentially and has proven extremely effective in tasks such as context and text-to-speech resolution. In this case, the filter (kernel) is applied over a larger area than its length by skipping input values with a certain step, called \textit{dilation field}. Exponentially increasing the dilation rate results in an exponential field growth in depth\cite{DBLP:journals/corr/YuK15}.  
 	\\ \\
-	Conceptually, dilated convolution is a simple by effective idea when it comes to detection of fine-grained details by processing inputs in higher resolutions. For this reason, I have considered applying this approach to the problem at hand.
+	Recent work has shown that dilated convolution is a simple by effective idea when it comes to detection of fine-grained details by processing inputs in higher resolutions. For this reason, I have considered applying this approach to the problem at hand.
 	
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.8\textwidth]{graphics/nns/conv/dilated}
-		\caption[Dilated convolution]{Dilated convolution schema reproduced from ADD HERE!!!!!!!!!!!}
+		\caption[Dilated convolution]{Dilated convolution schema reproduced from \textit{van den Oord et al.} \citep{DBLP:journals/corr/OordDZSVGKSK16}}
 		\label{Fig: prep/ml/cnn/dilated}
 	\end{figure}
-	
-	Following the convolutional layer(s), a CNN normally has a one or more fully connected layers that process the outputs and return either a probability distribution (for classification) or a single value (in the case of regression).  
-	
+
 	\subsection{Graph Attention Network}	
-	This section describes Graph Attention Networks (GATs), bleeding-edge neural network architectures that operate on graph-structured data (as described by Veli\v{c}kovi\v{c} et al., 2018). It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT). One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
+	This section describes Graph Attention Networks (GATs), state-of-the-art neural network architectures that operate on graph-structured data (as described by \cite{2017arXiv171010903V}). It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT)\cite{DBLP:journals/corr/LuongPM15, DBLP:journals/corr/VaswaniSPUJGKP17}. One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
+	\\ \\
+	Unlike the other models discussed in this section, GATs take full advantage of the relational structure of the graph, by not treating the nodes as being isolated, but instead also looks at the neighbourhood of every node (i.e. the nodes being at mostly one hop distance from the one we want to classify). For this reason I considered this architecture as a potentially interesting model for the classification problem I am trying to solve.
 	\\ \\ 
 	By stacking layers in which nodes are able to attend over their neighbourhood's features, GATs enable specifying different weights to different nodes in a neighbourhood, without requiring any kind of costly matrix operations or depending on knowing the graph structure upfront. 
 	\\ \\
@@ -377,9 +325,9 @@
 	\end{equation}
 	where $\alpha$ is a nonlinear activation function. 
 	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
-	Parametric machine learning techniques, such as neural networks, treat supervised learning under the assumption that the forms of the underlying density functions were known. In practice, though, the common parametric forms rarely fit the densities actually encountered in practice. 
+	So far, I discussed various parametric machine learning techniques I considered appropriate for the problem I am trying to solve. These models, though, treat supervised learning under the assumption that the forms of the underlying density functions were known, even though they rarely fit the densities actually encountered in practice. 
 	\\ \\
-	This section examines \textbf{nonparametric} procedures that can be used with arbitrary distributions and without the assumption that the forms of the underlying densities are known. There are several types of nonparametric methods that can be applied to pattern recognition and classification. In this section, I describe methods for estimating an unknown probability density function. The most fundamental techniques rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
+	In this section, I examine how the probability density functions of the two classes (i.e. \textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). Firstly, they rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
 	\begin{equation}
 		\centering
 		P = \int_{\mathfrak{R}} p(\mathbf{x'}) d\mathbf{x'}
@@ -443,11 +391,12 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 	 \end{equation}
 	 and $c_i(\mathbf{x})$ is the output of the $i^\text{th}$ category unit.
 	\section{API architecture} \label{Section 2.3}
-	Oncne-e I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
+	Once I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
 	\\ \\
 	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and are do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the different layers involved in a REST APIs' architecture make it highly modular and scalable. 
 	\\ \\
-	Being stateless, a REST API might increase the per-request overhead significantly by having to handle loads of incoming and outbound calls. Therefore, it is essential that for it to be designed to encourage the caching of intermediate results.
+	Being stateless, a REST API might increase the per-request overhead significantly by having to handle loads of incoming and outbound calls. Therefore, it is essential that it is designed to encourage the caching of intermediate results.
+	
 	\section{Requirements analysis} \label{Section 2.4}
 	Having reviewed the structure of the raw graph data, the background theory of the machine learning models and the structure that will facilitate interaction with the CADETS user interface, the requirements of the project overall were closely examined. The end goal of this project is to have an independent and modular tool that is able to connect to the CADETS UI and efficiently classify the nodes from a given graph. A breakdown of the project requirements can be visualized in Table \ref{Table 2.2}.
 	\begin{longtable}{|p{.51\textwidth}|p{.13\textwidth} p{.13\textwidth} p{.13\textwidth}|}

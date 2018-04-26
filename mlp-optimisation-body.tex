@@ -1,0 +1,49 @@
+\chapter{Gradient descent} \label{appendix-MLP-opt}
+
+Let $\mathbf{s}$ be a set of training examples $\mathbf{s}=(\mathbf{X}, \mathbf{Y})$, where $\mathbf{X} = [\mathbf{x_1}\dots\mathbf{x_m}]$ is the matrix of training feature vectors, with $\mathbf{x_i}\in\mathbb{R}^n. \forall i \in \{1\dots m\}$ and $\mathbf{Y} = [\mathbf{y_1}\dots\mathbf{y_m}]$ is the matrix representing the corresponding class for every input feature vector, using one-hot encoding. For an input vector $\mathbf{x_i}$ in class $C_t$, the corresponding $\mathbf{y_i}$ will be:
+\begin{equation}
+\centering
+\mathbf{y_i}^T = [y_{i, 1}\dots y_{i, k}]
+\end{equation} 
+where:
+\begin{equation}
+\centering
+y_{i, j} = 
+\begin{cases}
+1 & \text{if } j = t \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+One of the most frequently encountered optimisation algorithms is \textbf{gradient descent}, an iterative algorithm that finds the optimal weights and biases by minimizing a given loss function $\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b})$. The choice of the loss function depends on the network infrastructure and the problem it is trying to solve. One of the most popular loss functions for classification problems is \textbf{cross-entropy}. It computes the difference between the true output distribution $\mathbf{y}_i$ and the neural network output distribution $\mathbf{\hat{y}}_i$, respectively:
+\begin{equation}
+\centering
+\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b}) = -\sum_{j=1}^{k}y_{i,j}\log(\hat{y}_{i,j})
+\end{equation}
+In order to avoid potential overfitting of the model to the training data, one may change the loss function such that it includes the norm of the weights vector:
+\begin{equation}
+\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b}) = -\sum_{j=1}^{k}y_{i,j}\log(\hat{y}_{i,j}) + \vert\vert \mathbf{w} \vert\vert
+\end{equation} 
+The gradient descent algorithm then updates the weights and biases as follows: 
+\begin{equation}
+\centering
+\mathbf{w}_{t+1} \leftarrow \mathbf{w}_t - \alpha \sum_{i=1}^{m}\frac{\partial \mathfrak{L}}{\partial \mathbf{w}}\Bigr|_{\substack{\mathbf{w}_t}}
+\label{Eq: gdes/update/weights}
+\end{equation}
+\begin{equation}
+\centering
+\mathbf{b}_{t+1} \leftarrow \mathbf{b}_t - \alpha \sum_{i=1}^{m}\frac{\partial \mathfrak{L}}{\partial \mathbf{b}}\Bigr|_{\substack{\mathbf{b}_t}}
+\label{Eq: gdes/update/weigts}
+\end{equation}
+where $\mathbf{w}_t$ and $\mathbf{b}_t$ are the weights and biases at iteration t, $\mathfrak{L} = \mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}_t, \mathbf{b}_t)$ and $\alpha$ is the learning rate - a hyperparameter that decides the amount by which the direction of the gradient is followed at each iteration. The value of the learning rate impacts the behaviour of the optimisation algorithm. A high learning rate might cause the algorithm to never reach the minimum of the loss function. The lower it is, the slower we travel along the downwards slope of the loss function. Even though this ensures the fact that we don't miss any local minima, it can also mean that the algorithm will take a long time to converge - especially if it gets stuck on a plateau region. 
+\\ \\
+\textbf{Backpropagation} is the technique used to compute the gradient of the loss function with respect with the weights $\mathbf{w}$ and biases $\mathbf{b}$. The overall algorithm has two phases:
+\begin{itemize}
+	\item Phase 1: \textbf{Propagation}
+	\begin{enumerate}
+		\item Propagate every training example $\mathbf{x}_i$ through the network to generate the output values $\mathbf{\hat{y}}_i$.
+		\item Calculate the loss function $\mathfrak{L}$.
+		\item Backpropagate the output activations back through the network using the training pattern in order to generate the gradients of all output and hidden neurons.
+	\end{enumerate}
+	\item Phase 2: \textbf{Weights and biases updating}, using the equations \ref{Eq 2.13} and \ref{Eq 2.14}
+\end{itemize}
+\textbf{Mini-batch gradient descent} is a variation of gradient descent that splits the training set into small batches $\mathfrak{B}=\{(\mathbf{x}_1, \mathbf{y}_1)\dots(\mathbf{x}_l, \mathbf{y}_l)\}$. Each batch $\mathfrak{B}$ is used to calculate the loss function and update model coefficients. The coefficients update frequency is higher than classical gradient descent which allows for a more robust convergence, avoiding local minima. 
