@@ -1,0 +1,201 @@
+\documentclass[12pt,letterpaper]{standalone}
+\usepackage{pgf, tikz}
+\usetikzlibrary{arrows, automata}
+\usepackage{mwe} % For dummy images 
+\usetikzlibrary{positioning}
+\usepackage{tikz-uml}
+
+\begin{document}
+	\begin{tikzpicture}
+		
+		\draw[line width=1mm] (-25,-5) rectangle (35,40);
+		\fill[orange!30, semitransparent] (-25,-1) rectangle (35, 20);
+		\draw[line width=1mm, dotted] (-25,20) -- (35,20);
+		\draw[line width=1mm, dotted] (-25,-1) -- (35,-1);
+		
+		\node at (0, -4) {};
+		
+		\fill[blue!30, semitransparent] (-25, 20) rectangle (-3, 40);
+		\draw[line width=1mm, dotted] (-3,20) -- (-3,40);
+		
+		\fill[yellow!30, semitransparent] (-3, 20) rectangle (35, 40);
+		
+		\node[thick] at (-20, 39) {\LARGE \textbf{\textit{Neo4J interaction module}}};
+		\node[thick] at (32, 38) {\LARGE \textbf{\textit{API module}}};
+		\node at (29, 0) {\LARGE \textbf{\textit{machine learning module}}};
+		\node at (-20, -2) {\LARGE \textbf{\textit{external (keras) classes}}};
+		
+		\umlclass[x=10, y=28, fill=blue!10, alias=RequestJob]{server.jobs.RequestJob} {
+			- \textbf{\_cacheHandler}: server.cache.CacheHandler \\
+			- \textbf{\_nodes}: list \\
+			- \textbf{\_featureExtractor}: data.neo4j.FeatureExtractor \\
+			- \textbf{\_status}: str \\
+			- \textbf{\_jobID}: str \\
+			- \textbf{\_model}: models.Model 
+		} {
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{run()}: void \\
+			+ \textbf{get\_status()}: str \\
+			- \textbf{\_cache\_result()}: void \\ 
+			- \textbf{\_preprocess()}: void
+		}
+	
+		\umlclass[x=10, y=36, fill=green!10, alias=JobsHandler]{server.jobs.JobsHandler} {
+			- \textbf{\_jobs}: dict \\
+			- \textbf{\_neo4j\_conn\_data}: dict \\
+			- \textbf{\_cache\_conn\_data}: dict \\
+			- \textbf{\_default\_TTL}: int \\
+		}{
+			+ \textbf{\_\_init()\_\_} \\
+			+ \textbf{add\_job()}: void \\
+			+ \textbf{get\_job\_results()}: dict \\
+			+ \textbf{get\_status()}: str \\
+			- \textbf{\_generate\_jobID()}: str \\
+		}
+	
+		\umlclass[x=25, y=30, fill=orange!10, alias=CacheHandler]{server.cache.CacheHandler} {
+			- \textbf{\_driver}: mysql.connector \\
+			- \textbf{\_db\_name}: str \\
+			- \textbf{\_host}: str \\
+			- \textbf{\_user}: str \\
+			- \textbf{\_pass}: str \\
+		} {
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{is\_cached()}: bool \\
+			+ \textbf{get\_cached\_value()}: dict \\
+			+ \textbf{insert\_cache\_entry()}: void \\
+			+ \textbf{update\_cache\_entry()}: void \\
+			+ \textbf{add\_new\_job()}: void \\
+			- \textbf{\_execute\_SELECT()}: list \\
+			- \textbf{\_execute\_INSERT()}: void \\
+			- \textbf{\_execute\_UPDATE()}: void
+		}
+	
+		\umlclass[x=-18,y=35, fill=yellow!10, alias=DatabaseDriver]{data.neo4j.DatabaseDriver}{
+			- \textbf{\_host}: str \\
+			- \textbf{\_port}: int \\
+			- \textbf{\_driver}: neo4j.v1.GraphDatabase.driver \\
+		}
+		{
+			+ \textbf{\_\_init\_\_()}: void \\
+			+ \textbf{execute\_query()}: list \\
+			+ \textbf{close()}: void \\
+		}
+		
+		\umlclass[x=-18,y=25,fill=green!10, alias=FeatureExtractor]{data.features.FeatureExtractor}{
+			- \textbf{\_nodes}: list \\
+			- \textbf{\_verbose}: bool \\
+			- \textbf{\_dbDriver}: data.neo4J.DatabaseDriver \\
+		}
+		{
+			+ \textbf{\_\_init\_\_()}: void \\
+			+ \textbf{get\_feature\_matrix()}: list \\
+			+ \textbf{get\_adjacency\_matrix()}: numpy.ndarray \\
+		}
+		
+		\umlclass[x=0, y=18, fill=green!10, type=abstract, alias=Model]{models.Model}{
+			- \textbf{\_config}: models.configs.ModelConfig \\
+		}{
+			+ \textbf{\_\_init\_\_()}
+		}
+	
+		\umlclass[x=-20, y=12.5, alias=LogisticRegression]{models.LogisticRegression}{
+		}{
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{setup()}: void
+		}
+		
+		\umlclass[x=-13, y=12.5, alias=MLP] {models.MulilayerPerceptron} {
+		} {
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{setup()}: void
+		}
+	
+		\umlclass[x=-5, y=12.5, alias=CNN] {models.ConvolutionalNeuralNetwork} {
+		} {
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{setup()}: void
+		}
+	
+		\umlclass[x=4, y=12.5, alias=PNN] {models.ProbabilisticNeuralNetwork} {
+			- \textbf{\_data}: numpy.ndarray
+		} {
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{setup()}: void \\
+			+ \textbf{train()}: void \\
+			+ \textbf{classify()}: dict \\
+			+ \textbf{load\_checkpoint()}: void \\
+			+ \textbf{evaluate()}: dict
+		}
+	
+		\umlclass[x=13, y=12.5, alias=GAT] {models.GraphAttentionNetwork} {
+			- \textbf{\_model}: keras.models.Model \\
+			- \textbf{\_attn\_layer}: models.layers.GraphAttention
+		} {
+			+ \textbf{\_\_init\_\_()} \\
+			+ \textbf{setup()}: void \\
+			+ \textbf{get\_model()}: keras.models.Model \\
+		}
+	
+		\umlclass[x=13, y=4.5, alias=GAT-layer, fill=blue!10]{models.layers.GraphAttention} {
+			- \textbf{\_newF}: int \\
+			- \textbf{\_attn\_dropout}: float \\
+			- \textbf{\_activtion}: keras.activations.Activation \\
+			- \textbf{\_kernel\_init}: keras.initializers.Initializer \\
+			- \textbf{\_attn\_kernel\_init}: keras.initializers.Initializer \\
+			- \textbf{\_kernel\_constraint}: keras.constraints.Constraint \\
+			- \textbf{\_attn\_kernel\_constraint}: keras.constraints.Constraint \\
+			- \textbf{\_kernel\_regularizer}: keras.regularizers.Regularizer \\
+			- \textbf{\_attn\_kernel\_regularizer}: keras.regularizers.Regularizer \\
+			- \textbf{\_attn\_heads}: int \\
+			- \textbf{\_multihead\_mode}: str \\
+			- \textbf{\_kernel} \\
+			- \textbf{\_attn\_kernel} \\
+			- \textbf{\_output\_dim}: int \\
+			- \textbf{\_built}: bool
+		}{
+			+ \textbf{build()}: void \\
+			+ \textbf{call()}: tensorflow.Tensor
+		}
+	
+		\umlemptyclass[x=26, y=18, alias=cnf, fill=blue!10, type=abstract]{models.configs.ModelConfig}{
+		}{
+		}
+	
+		\umlemptyclass[x=20.5, y=14, alias=train-cnf,  type=abstract]{models.configs.TrainConfig}{
+		}{
+		}
+	
+		\umlemptyclass[x=26, y=14, alias=eval-cnf,  type=abstract]{models.configs.EvalConfig}{
+		}{
+		}
+	
+		\umlemptyclass[x=31.5, y=14, alias=classify-cnf,  type=abstract]{models.configs.ClassifyConfig}{
+		}{
+		}	
+	
+		\umlemptyclass[x=-10, y=-3, alias=Sequential, fill=blue!10, type=abstract] {keras.models.Sequential} {}  {}
+		
+		\umlemptyclass[x=13, y=-3, alias=Layer, fill=orange!10, type=abstract] {keras.layers.Layer} {}  {}
+		
+		\umlVHVinherit[thick]{cnf}{train-cnf};
+		\umlVHVinherit[thick]{cnf}{eval-cnf};
+		\umlVHVinherit[thick]{cnf}{classify-cnf};
+		\umlVHVinherit[thick]{Model}{LogisticRegression};
+		\umlVHVinherit[thick]{Sequential}{LogisticRegression};
+		\umlinherit[thick]{Layer}{GAT-layer};
+		\umlVHVinherit[thick]{Model}{MLP};
+		\umlVHVinherit[thick]{Sequential}{MLP};
+		\umlVHVinherit[thick]{Model}{CNN};
+		\umlVHVinherit[thick]{Sequential}{CNN};
+		\umlVHVinherit[thick]{Model}{PNN};
+		\umlVHVinherit[thick]{Model}{GAT};
+		\umlaggreg[thick]{RequestJob}{JobsHandler};
+		\umlassoc[thick]{CacheHandler}{RequestJob};	
+		\umlassoc[thick]{DatabaseDriver}{FeatureExtractor};
+		\umlassoc[thick]{FeatureExtractor}{RequestJob};
+		\umlassoc[thick]{Model}{RequestJob};
+		\umlassoc[thick]{Model}{cnf};
+		\umlassoc[thick]{GAT}{GAT-layer};
+	\end{tikzpicture}
+\end{document}

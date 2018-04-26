@@ -1,0 +1,102 @@
+\documentclass[border=0.125cm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{ifthen}
+\usetikzlibrary{matrix,arrows.meta,quotes,shadows,decorations.pathreplacing,positioning,fadings}
+\usepackage{cfr-lm}
+\usetikzlibrary{shapes.misc}
+
+\begin{document}
+	\tikzset{
+		input-neuron/.style={
+			circle,
+			draw,
+			minimum size=.1cm,
+			fill=green!20
+		},
+		hidden-neuron/.style={
+			circle,
+			draw,
+			minimum size=.1cm,
+			fill=yellow!20
+		},
+		output-neuron/.style={
+			circle,
+			draw,
+			minimum size=.1cm,
+			fill=red!20
+		},
+	}
+
+	\begin{tikzpicture}
+		\foreach \m in {1,...,23}
+			\node[input-neuron] (input-\m) at (6.0 - 0.4*\m, 0) {};
+		\foreach \m in {1,...,32}
+			\node[hidden-neuron] (hidden1-\m) at (7.5 - 0.4*\m, 2) {};
+			
+		\foreach \m in {1,...,16}
+			\node[hidden-neuron, fill=yellow!40] (hidden2-\m) at (4.6 - 0.4*\m, 4) {};
+		
+		\foreach \m in {1,...,2}
+			\node[output-neuron] at (1.8 - 0.5*\m, 6) {};
+		
+		\draw[thick] (6.0, -0.3) rectangle (-3.8, 0.3);
+		\draw[thick] (7.5, 1.7) rectangle  (-5.7, 2.3);
+		\draw[thick] (4.7, 3.7) rectangle  (-2.5, 4.3);
+		\draw[thick] (1.6, 5.7) rectangle  (0.5, 6.3);
+		
+		\node (input-out) at (1.1, 0.3) {};
+		\node (hidden1-in) at (1.1, 1.7) {};
+		\node (hidden1-out) at (1.1, 2.3) {};
+		\node (hidden2-in) at (1.1, 3.7) {};
+		\node (hidden2-out) at (1.1, 4.3) {};
+		\node (output-in) at (1.1, 5.7) {};
+		
+		\draw[->, thick] (input-out) -- (hidden1-in) ;
+		\draw[->, thick] (hidden1-out) -- (hidden2-in) ;
+		\draw[->, thick] (hidden2-out) -- (output-in) ;
+		
+		\draw [
+		thick,
+		decoration={
+			brace,
+			mirror,
+			raise=0.5cm
+		},
+		decorate
+		] (-4, -0.2) -- (6, -0.2);
+		
+		\node () at (1, -1.3) {\textbf{Input data}} ;
+		
+		\draw [
+		thick,
+		decoration={
+			brace,
+			mirror,
+			raise=0.5cm
+		},
+		decorate
+		] (1.9, 6) -- (0.1, 6);
+		
+		\node () at (1, 7) {\textbf{Output probabilities}} ;
+		
+		\draw [thick, decorate,decoration={brace,amplitude=10pt, mirror},xshift= -4pt,yshift=0pt]
+		(8,-1) -- (8,2.0);
+		
+		\node () at (9.2, 0.8) {\textbf{Expansion}};
+		\node () at (9.2, 0.4) {\textbf{phase}};
+		
+		\draw [thick, decorate,decoration={brace,amplitude=10pt, mirror},xshift= -4pt,yshift=0pt]
+		(8,2.2) -- (8,6);
+		
+		\node () at (9.2, 4.4) {\textbf{Reduction}};
+		\node () at (9.2, 4.0) {\textbf{phase}};
+		
+		%\node () at (0.0, 8.0) {\textbf{Input Layer}};
+		%\node () at (3.0, 8.0) {\textbf{Hidden Layer}};
+		%\node () at (6.0, 8.0) {\textbf{Hidden Layer}};
+		%\node () at (9.0, 8.0) {\textbf{Output Layer}};
+		
+	\end{tikzpicture}
+	
+\end{document}

@@ -9,7 +9,7 @@
 
 	\footnotetext[1]{\textbf{\url{https://neo4j.com/}}}
 	
-	\subsection{Data structure analysis}
+	\subsection{Data structure analysis} \label{Section: prep/datastructure}
 	The data is stored as a graph, consisting of nodes and edges. Here, nodes represent the actors(processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(id, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
 	\\ \\
 	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of nodes' frequencies. The 'Meta' nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the 'File' nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a biast classifier (i.e. a model that classifies 'File' nodes correctly and misclassifies the other node types). 
@@ -42,7 +42,7 @@
 	 
 	 The graphs resulting from tracing are very sparse, with a number of edges almost equal to the number of nodes. This observation is also sustained by the histogram in Figure \ref{Figure 2.1.3}, where we can observe that most of the nodes have degrees between 0 and 10, while there also are a few nodes with a very high degree (up to $60, 000$).
 	 
-	\subsection{Ground truths}
+	\subsection{Ground truths} \label{Section: prep/data/ground-truths}
 	In order to apply appropriate supervised learning algorithms, I had to build a labelled dataset of nodes from the raw data stored in graph format. This required setting a number of \textit{ground truths} of what a node of interest is. 
 	\\ \\
 	These ground truths are represented by a set of 6 rules, where I took into consideration a subset of node types: Files, Processes and Sockets. The rules are:
@@ -128,6 +128,7 @@
 		} } & \textbf{Real} \\
 	\hline
 	\caption[Features table]{\centering Table listing and explaining the meaning of the features that are extracted for every node.}
+	\label{Table: prep/features}
 	\end{longtable}
 
 
@@ -379,12 +380,12 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 
   	\begin{figure}[H]
  		\centering
- 		\includegraphics[width=.7\textwidth]{graphics/nns/pnn}
+ 		\includegraphics[width=\textwidth]{graphics/nns/pnn}
  		\caption{PNN architecture}
  		\label{Fig 2.8}
  	\end{figure}
 	 
-	 Figure \ref{Fig 2.8} shows a general-purpose PNN architecture that can be used for classification. It consists of $n$ in put units, $m$ pattern units and $k$ output units. Each pattern unit forms the inner product of its weight vector $\mathbf{w}$ and the normalized pattern vector $\mathbf{x}$ and outputs $\exp(\frac{\mathbf{w}^T\mathbf{x} - 1}{\sigma^2})$. Each category unit sums up the outputs of the pattern units connected to it. This insures that the activity in each of the category units represents the Parzen-window density estimate using a circular symmetric Gaussian window of covariance $\sigma^2\mathbf{I}$, where $\mathbf{I}$ is the $n\times n$ identity matrix. $\sigma$ is a parameter set by the user and is equal to $\sqrt{2}$ times the width of the effective Gaussian window
+	 Figure \ref{Fig 2.8} shows a general-purpose PNN architecture that can be used for classification. It consists of $n$ input units, $m$ pattern units and $k$ output units. Each pattern unit forms the inner product of its weight vector $\mathbf{w}$ and the normalized pattern vector $\mathbf{x}$ and outputs $\exp(\frac{\mathbf{w}^T\mathbf{x} - 1}{\sigma^2})$. Each category unit sums up the outputs of the pattern units connected to it. This insures that the activity in each of the category units represents the Parzen-window density estimate using a circular symmetric Gaussian window of covariance $\sigma^2\mathbf{I}$, where $\mathbf{I}$ is the $n\times n$ identity matrix. $\sigma$ is a parameter set by the user and is equal to $\sqrt{2}$ times the width of the effective Gaussian window
      \\ \\ 
 	 The weights of the $p^\text{th}$ pattern unit are set as $\mathbf{w}_p = \mathbf{x}_p$, $\forall p \in \{ 1,2,\dots ,m \}$, where $\mathbf{x}_p$ is the normalised $p^\text{th}$ pattern from the training set. In order to classify the a new normalized pattern $\mathbf{x}$ we first have to propagate the it through the network. Then, the resulting class will be $C_t$, where:
 	 \begin{equation}
@@ -392,7 +393,7 @@ p(\mathbf{x}) &\approx \frac{P}{V} \\
 	 \end{equation}
 	 and $c_i(\mathbf{x})$ is the output of the $i^\text{th}$ category unit.
 	\section{API architecture} \label{Section 2.3}
-	Once I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
+	Oncne-e I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
 	\\ \\
 	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and are do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the different layers involved in a REST APIs' architecture make it highly modular and scalable. 
 	\\ \\

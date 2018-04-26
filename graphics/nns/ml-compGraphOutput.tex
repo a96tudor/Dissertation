@@ -1,0 +1,64 @@
+\documentclass[border=0.125cm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{ifthen}
+\usetikzlibrary{matrix,arrows.meta,quotes,shadows,decorations.pathreplacing,positioning,fadings}
+\usepackage{cfr-lm}
+\usetikzlibrary{shapes.misc}
+
+\begin{document}
+	\tikzset{
+		module/.style = {
+			draw,
+			rounded rectangle,
+			fill=white
+		},
+		reg module/.style = {
+			draw,
+			rounded rectangle,
+			fill=blue!20
+		},
+		param/.style = {
+			draw,
+			circle,
+			minimum size = .25cm,
+			fill=white
+		},
+		reg param/.style = {
+			draw,
+			circle, 
+			minimum size = .25cm,
+			fill=blue!20
+		},
+		edge/.style = {
+			->
+		}
+	}
+	\begin{tikzpicture}
+		\node[param] (input) at (0,0){\LARGE $\mathbf{X}$};
+		\node[param] (weights) at (-2, 0.8) {$\mathbf{W}$};
+		\node[reg module] (MatMul) at (-1, 2) {MatMul};
+		\node[reg module] (sum) at (-2,4) {$\Sigma$};
+		\node[param] (bias) at (-3, 3) {$\mathbf{b}$};
+		\node[reg module] (softmax) at (-2, 6) {Softmax};
+		
+		\draw[edge] (input) -- (MatMul);
+		\draw[edge] (weights) -- (MatMul);
+		\draw[edge] (MatMul) -- (sum);
+		\draw[edge] (bias) -- (sum);
+		\draw[edge] (sum) -- (softmax);
+		
+		\node (in) at (0, -2) {};
+		\node (out) at (-2, 8) {};
+		
+		\draw[edge] (in) -- (input);
+		\draw[edge] (softmax) -- (out); 
+		
+		\node () at (0,-2.1) {Ouputs of};
+		\node () at (0, -2.5) {previous hidden};
+		\node () at (0, -2.9) {layer};
+		
+		\node () at (-2, 8.5) {Probability distribution};
+		\node () at (-2, 8.1) {over classes};
+	\end{tikzpicture}
+\end{document}
