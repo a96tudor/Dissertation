@@ -1,0 +1,74 @@
+\documentclass[border=0.125cm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{ifthen}
+\usetikzlibrary{matrix,arrows.meta,quotes,shadows,decorations.pathreplacing,positioning,fadings}
+\usepackage{cfr-lm}
+\usepackage{amsmath}
+\usepackage{xparse}
+
+
+\colorlet{mewnol}{blue!75!cyan}%
+\colorlet{allanol}{blue!50!black}%
+
+\begin{document}
+
+\tikzset{%
+  every neuron/.style={
+    circle,
+    draw,
+    minimum size=1.2cm
+  },
+  neuron missing/.style={
+    draw=none, 
+    scale=4,
+    text height=0.333cm,
+    execute at begin node=\color{black}$\vdots$
+  },
+  small neuron/.style={
+	circle,
+	draw, 
+	minimum size=0.1cm
+  },
+}
+
+\begin{tikzpicture}[x=1.5cm, y=1.5cm, >=stealth]
+
+	\foreach \y/\l in {1,2,3,4,5,7,8,9,10,11}
+		\node [small neuron] (input\y) at (3.0 - 0.5*\y, 0.0) {};
+	
+	\node[every neuron] (leaky) at (0, 2) {LReLU};
+	\node[every neuron] (output) at (0, 4.5) {$\alpha_{ij}$};
+	 
+	\draw [->] (leaky) -- (output) node[near start, right=0.2cm, rotate=90] {$\text{softmax}_j$};
+	
+	\foreach \i/\l in {1,2,3,4,5,7,8,9,10,11}
+		\draw [->] (input\i) -- (leaky);
+	
+	\draw [
+	thick,
+	decoration={
+		brace,
+		mirror,
+		raise=0.5cm
+	},
+	decorate
+	] (-2.65, -0.001) -- (-0.4, -0.001);
+	
+	\node (w1) at (-1.55, -0.6) {$\mathbf{Wh_i}$};
+	
+		\draw [
+	thick,
+	decoration={
+		brace,
+		mirror,
+		raise=0.5cm
+	},
+	decorate
+	] (0.4, -0.001) -- (2.65, -0.001);
+	
+	\node (w1) at (1.55, -0.6) {$\mathbf{Wh_j}$};
+	
+\end{tikzpicture}
+
+\end{document}

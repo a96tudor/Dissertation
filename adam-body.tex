@@ -1,0 +1,27 @@
+\chapter{Adam} \label{Appendix: Adam}
+
+Given the gradient of the loss function with respect to the weights over a mini-batch $\mathfrak{B}$ at timestep t: 
+
+\begin{equation}
+\mathbf{g}_t = 
+\sum_{(\mathbf{x}, \mathbf{y} \in \mathfrak{B})}
+\frac{
+	\partial \mathfrak(\mathbf{w}, \mathbf{b}, \mathbf{x}, \mathbf{y})
+}{
+	\partial \mathbf{w}
+},
+\end{equation}
+it computes an exponentially decaying average of previous gradients $\mathbf{m}_t$ and an exponentially decaying average of previous squared gradients $\mathbf{v}_t$:
+\begin{equation}
+\mathbf{m}_t = \beta_1 \mathbf{m}_{t-1} + (1-\beta_1)\mathbf{g}_t 
+\end{equation}
+\begin{equation}
+\mathbf{v}_t = \beta_2 \mathbf{v}_{t-1} + (1-\beta_2)\mathbf{g}_t^2 
+\end{equation}
+where $\beta_1$ and $\beta_2$ are the exponential decaying rates, usually set to $\beta_1 = 0.9$ and $\beta_2 = 0.999$. As $\mathbf{m}_t$ and $\mathbf{v}_t$ are initialised to $0$, the optimiser applies the following corrections: 
+\begin{equation}
+\mathbf{\hat{m}}_t = \frac{\mathbf{m}_t}{1-\beta_1^t}
+\end{equation}
+\begin{equation}
+\mathbf{\hat{v}}_t = \frac{\mathbf{v}_t}{1-\beta_2^t}
+\end{equation}

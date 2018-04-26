@@ -1,0 +1,33 @@
+\documentclass[12pt,letterpaper]{standalone}
+\usepackage{pgf, tikz}
+\usetikzlibrary{arrows, automata}
+\usepackage{mwe} % For dummy images 
+\usetikzlibrary{positioning}
+\usepackage{tikz-uml}
+
+\begin{document}
+	\begin{tikzpicture}
+		\umlclass[x=2,y=0, fill=yellow!10]{DatabaseDriver}{
+			- \textbf{\_host}: str \\
+			- \textbf{\_port}: int \\
+			- \textbf{\_driver}: neo4j.v1.GraphDatabase.driver \\
+		}
+		{
+			+ \textbf{\_\_init\_\_()}: void \\
+			+ \textbf{execute\_query()}: list \\
+			+ \textbf{close()}: void \\
+		}
+	
+		\umlclass[x=2,y=-7,fill=green!10]{FeatureExtractor}{
+			- \textbf{\_nodes}: list \\
+			- \textbf{\_verbose}: bool \\
+			- \textbf{\_dbDriver}: data.neo4J.DatabaseDriver \\
+		}
+		{
+			+ \textbf{\_\_init\_\_()}: void \\
+			+ \textbf{get\_feature\_matrix()}: list \\
+			+ \textbf{get\_adjacency\_matrix()}: numpy.ndarray \\
+		}
+		\umlassoc[thick]{DatabaseDriver}{FeatureExtractor} 
+	\end{tikzpicture}
+\end{document}
