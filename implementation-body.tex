@@ -170,6 +170,7 @@
 			\caption{Input \& hidden layer}
 			\label{Fig: impl/ml/mlp/compgraph-hidden}
 		\end{subfigure}
+		\hfill
 		\begin{subfigure}[b]{.4\textwidth}
 			\includegraphics[width=\textwidth]{graphics/nns/ml-compGraphOutput}
 			\caption{Output layer}
@@ -180,14 +181,14 @@
 	\end{figure}
 	
 	\subsection{Convolutional Neural Network} \label{Section: impl/ml/cnn}
-	In this section I describe the implementation of the third model implemented as part of the project, a Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional convolutional layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
+	In this section I describe the implementation of the third model implemented as part of the project, a Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional dilated convolution layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=\textwidth]{graphics/nns/cnn}
 		\caption{Architecture of the Convolutional Neural Network}
 		\label{Fig: impl/ml/cnn/architecture}
 	\end{figure}
-	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. The purpose of the convolutional layers is to learn a kernel that would be able to find patterns between the variables within each feature vector. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraphLast} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
+	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. Each of the 3 three convolutional layers uses a separate $1x2$ kernel, which is learned in during training. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraphLast} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
 	\begin{figure}[H]
 		\centering
 		\begin{subfigure}[b]{.4\textwidth}
@@ -196,6 +197,7 @@
 			\caption{Computational graph for one of the first two convolutional layers}
 			\label{Fig: impl/ml/cnn/compGraph}
 		\end{subfigure}
+		\hfill
 		\begin{subfigure}[b]{.4\textwidth}
 			\centering
 			\includegraphics[width=.7\textwidth]{graphics/nns/cnn-compGraphLast}
@@ -209,7 +211,7 @@
 	\\ \\
 	Just like the MLP, the CNN optimizes the parameters using Adam and the \textbf{binary crossentropy} loss function with weight decay regularization (Equation \ref{Eq: impl/ml/loss}).
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
-	Another model implemented as part of the project was a Graph Attention Network. Unlike the other models implemented, it makes more use of the relational nature of the graph structure the data is stored in. 
+	Another model implemented as part of the project was a Graph Attention Network. Unlike the other models implemented, it makes more use of the relational nature of the graph structure the data is stored in and therefore I expect it to be a good fit to the data I am working on.
 	\\ \\
 	The key layer in this implementation is the \textbf{graph attention layer}, which maps any input vector $\mathbf{h}_i
 	 \in \mathbb{R}^{23}$ to a new one in $\mathbf{h}_i'\in \mathbb{R}^{32}$. First, for every node $i$, it computes the attention coefficients $\alpha_{i,j} = \text{softmax}(e_{i,j})$ for every neighbour $j$ of that node, which tells us how much that neighbour influences the current node. In my implementation,$e_{i,j}$ is given by the following expression:
@@ -273,7 +275,7 @@
 		z_k = \mathbf{w}_k^T \mathbf{x}
 		\label{Eq: impl/ml/pnn/innerprod}
 	\end{equation}   
-	and emits a nonlinear function of $z_k$. The nonlinear function in this case is $\exp(\frac{z_k-1}{\sigma^2})$, where $\sigma$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. This choice of nonlinearity can be reasoned by considering an (unnormalized) Gaussian window centred on the position of the training patterns $\mathbf{w}_k$. If we let the effective width $h_n$ to be a constant, the window function would be:
+	and emits a nonlinear function of $z_k$. The nonlinear function in this case is $\exp(\frac{z_k-1}{\lambda^2})$, where $\lambda$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. This choice of nonlinearity can be reasoned by considering an (unnormalized) Gaussian window centred on the position of the training patterns $\mathbf{w}_k$. If we let the effective width $h_n$ to be a constant, the window function would be:
 	\begin{equation}
 		\begin{split}
 			\varphi\bigg(\frac{\mathbf{x}_k - \mathbf{w}_k}{h_n}\bigg) & \propto \exp\bigg(\frac{
@@ -381,7 +383,7 @@
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
-		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models).}
+		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models). WILL UPDATE!!!!}
 		\label{Fig: impl/REST/API-integrate}
 	\end{figure}
 	The \textbf{feature extractor} can connect to any Neo4J database that has the structure described in Section \ref{Section: prep/datastructure} and extract feature vectors for the nodes. 

@@ -37,7 +37,7 @@
 	\begin{tikzpicture}
 		\node[param] (input) at (0,0){\LARGE $\mathbf{X}$};
 		\node[param] (kernel) at (-2, 1) {kernel};
-		\node[reg module] (MatMul) at (-1, 3) {MatMul};
+		\node[reg module] (MatMul) at (-1, 3) {Dilated Convolution};
 		
 		\draw[edge] (input) -- (MatMul);
 		\draw[edge] (kernel) -- (MatMul);
