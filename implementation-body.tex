@@ -391,4 +391,7 @@
 	The REST-like architecture of the API allows for the server-side model to scale horizontally, by balancing the load between multiple instances of the server. The cache can then be either shared by all the instances, or have one cache for each instance. In both cases, though, the cache database can be scaled vertically by running it on a more powerful machine. 
 	
 	\section{Summary} \label{Section: impl/summary}
+	In this chapter I described the structure the tool implemented as part of this project. There are three core modules: the module that interacts with the Neo4J database, the machine learning module and the REST API module. For every one in particular, I described the limitations and difficulties I encountered and I motivated the decisions took when designing them. 
+	\\ \\
+	The following chapter will first show the results of evaluating the tool from multiple points of view(such as model performance or server service time) and then discuss and draw conclusions from these results. Furthermore, the next chapter also includes a comparative evaluation of the models from which I can conclude which would be more appropriate to be used in practice. 
 \end{document}
