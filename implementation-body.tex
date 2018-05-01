@@ -378,20 +378,19 @@
 	\end{figure}
 	By default, every cache entry is invalidated 24 hours after the job that the node is associated with is finished. On top of this, the API provides an entry point for forcibly clearing the cache. 
 	
-	\section{Modularity \& Scalability} \label{Section: impl/modularity&scalability}
-	During the implementation of the API, I had two goals in mind: modularity and scalability. In order to achieve this, every section makes use of the object-oriented paradigm (as shown in Figure \ref{Fig: impl/REST/API-integrate}). This allows anyone who wants to extend the tool to do so with ease, by simply extending one class and specifying this when starting the API.  
+	\section{Software engineering practices} \label{Section: impl/SoftEngPractices}
+	In this section I will present the software engineering practices that were followed throughout the implementation stage. These practices where essential, especially considering the fact that the project has a codebase of almost $3,000$ lines of code\footnote{Calculated using the open-source tool \textbf{cloc}: \textbf{\url{https://github.com/AlDanial/cloc}}}. 
+	\\ \\
+	Firstly, I divided the project into three core modules that interact with one another and can easily be tested and optimised separately. In order to achieve this, every module makes use of the object-oriented paradigm (as shown in Figure \ref{Fig: impl/REST/API-integrate}). Moreover, this allows anyone who wants to extend the tool to do so with ease, by simply extending one class and specifying this when starting the API.  
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
 		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models). WILL UPDATE!!!!}
 		\label{Fig: impl/REST/API-integrate}
 	\end{figure}
-	The \textbf{feature extractor} can connect to any Neo4J database that has the structure described in Section \ref{Section: prep/datastructure} and extract feature vectors for the nodes. 
+	Another goal I set was for the tool to be easily scalable when needed. For this reason, I decided to use a REST-like architecture for the server-side, which allows this module to scale horizontally, by balancing the load between multiple instances of the server. The cache can then be either shared by all the instances, or have one cache for each instance. In both cases, though, the cache database can be scaled vertically by running it on a more powerful machine. 
 	\\ \\
-	Anyone can add a new machine learning model to the API, by simply extending the abstract class \textit{models.Model}. The new model can be used by the API by simply specifying it as a parameter.  
-	\\ \\
-	The REST-like architecture of the API allows for the server-side model to scale horizontally, by balancing the load between multiple instances of the server. The cache can then be either shared by all the instances, or have one cache for each instance. In both cases, though, the cache database can be scaled vertically by running it on a more powerful machine. 
-	
+	I also made use of the new features provided by Python $3.6$ by \textit{statically typing} the functions' arguments and return types. In order to ensure their correct behaviour, I wrote unit tests for all the core functionalities of the project.
 	\section{Summary} \label{Section: impl/summary}
 	In this chapter I described the structure the tool implemented as part of this project. There are three core modules: the module that interacts with the Neo4J database, the machine learning module and the REST API module. For every one in particular, I described the limitations and difficulties I encountered and I motivated the decisions took when designing them. 
 	\\ \\

@@ -1,5 +1,5 @@
 \documentclass[12pt,a4paper,twoside,openright]{report}
-\usepackage[pdfborder={0 0 0}, breaklinks]{hyperref}    % turns references into hyperlinks
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
 \usepackage{verbatim}
@@ -30,14 +30,10 @@
 \usepackage{xcolor}
 \usepackage{natbib}
 \usepackage{subcaption}
-%\usepackage{breakurl}
-\usepackage{url}
-\usepackage{fnbreak}
 
 %\usepackage[style=authoryear,backend=biber]{biblatex}
 %\addbibresource{refs.bib}
 
-\PassOptionsToPackage{hyphens}{url}
 
 \makeatletter
 \def\@documentnocite#1{\@bsphack
@@ -101,12 +97,8 @@
  	{[}{{{\color{delim}{[}}}}{1}
  	{]}{{{\color{delim}{]}}}}{1},
  }
-
-%\g@addto@macro{\UrlBreaks}{\UrlOrds}
  
- \interfootnotelinepenalty=0
 \begin{document}
-
 
 \bibliographystyle{plain}
 
@@ -215,8 +207,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{refs}
-\nocite{pnn, polonium, pnn-parallel, sigmoidal, nonlinearities, DBLP:journals/corr/LuongPM15, 7266837, 2017arXiv171010903V, 279181, DBLP:journals/corr/KingmaB14, DBLP:journals/corr/VaswaniSPUJGKP17, REST-general, chollet2015keras, DBLP:journals/corr/IoffeS15, Rutkowski2004, 204245}
-
+\nocite{pnn, polonium, pnn-parallel, sigmoidal, nonlinearities, DBLP:journals/corr/LuongPM15, 7266837, 2017arXiv171010903V, 279181, DBLP:journals/corr/KingmaB14, DBLP:journals/corr/VaswaniSPUJGKP17, REST-general, chollet2015keras, DBLP:journals/corr/IoffeS15, Rutkowski2004}
 \include{parzen-body}
 \include{features-body}
 \include{mlp-optimisation-body}
