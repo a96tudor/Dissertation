@@ -50,7 +50,8 @@
 	One of the key requirements for a well-behaved machine learning model is to have a comprehensive training set. Keeping this in mind, I used the ground-truths listed in Section \ref{Section: prep/data/ground-truths} with the aim of extracting examples of nodes from both classes (i.e. \textit{SHOW} and \textit{HIDE}) from a database of $6,007$ nodes, out of which $5,498$ are of interest (i.e. either \textit{File}, \textit{Process} or \textit{Socket}). For all these selected nodes, I used the feature extractor in order to build a labelled training set $\mathbf{s}=\{ (\mathbf{x}_1, \mathbf{y_1}), \dots, (\mathbf{x}_n, \mathbf{y_n}) \}$ that will be used by all the models in the training phase. As expected, there is a significant imbalance in the training data, with $2,382$ nodes ($43.33\%$) being labelled as \textit{SHOW} and $3,115$ ($56.67\%$) being labelled as \textit{HIDE}. This is a factor that I took into consideration both when designing and evaluating the models.
 	\\ \\
 	Moreover, using the same training set for all the models implemented is one of the key factors that ensure the correctness of the models' comparative evaluation. 
-	\subsection{The Keras ecosystem} \label{Section: impl/ml/ecosys}
+	
+	\subsection{The Keras environment} \label{Section: impl/ml/ecosys}
 	Keras is a high-level deep-learning API, that can run on top of TensorFlow\footnote{\textbf{\url{https://www.tensorflow.org/}}}, CNTK\footnote{\textbf{\url{https://github.com/Microsoft/cntk}}} or Theano\footnote{\textbf{\url{https://github.com/Theano/Theano}}}, providing user friendliness, modularity and extensibility. Therefore, it allows for easy and fast prototyping, fitting well with the software engineering approach I took during the implementation stage. Moreover, Keras modules are highly portable: a model developed using one backend can just as easily work on any other deep learning backend. For the implementation of the parametric techniques I experimented as part of this project, I used the TensorFlow backend for Keras. 
 	\\ \\
 	The core data structure of Keras is a \textbf{Model}, an abstraction that gives users the ability to organize different type of layers. For most of the models presented here, I used the \textbf{Sequential} model, which represents a linear stack of layers. Running a model in Keras consists of 4 core elements:
@@ -60,6 +61,40 @@
 		\item \textbf{training} - once the model was compiled, the \textit{.train()} method can be used to define the training and validation sets used for optimizing the weights and hyperparameters of the model, respectively. Here, the user can also define two other hyperparameters: the number of iterations for which the optimizer will run and the batch size, for batch-based methods. 
 		\item \textbf{running} - with the model being optimized, the user can either use it to make predictions or to evaluate it, using the metrics defined in the compile stage. 
 	\end{enumerate}
+	I make use of the \textit{ModelCheckpoint} callback to save the pre-trained parameters of a given model. The checkpoints can be then loaded using the \textit{load\_weights()} method. Therefore, my implementation does not require training the model every time the application starts and is much more effective. 
+	
+	\subsection{The Model class} \label{Section: impl/ml/structure}
+	Throughout the entire implementation stage, I carefully followed the object-oriented paradigm, making use of class inheritance. For this reason, when implementing the machine learning models I first declared an abstract \textit{Model} base class(Figure \ref{Fig: impl/ml/model/uml/model}). The \textit{model} parameter is an instance of a Keras model used to actually run the model. I made this choice keeping in mind that some models (such as the PNN described in Section \ref{Section: impl/ml/pnn}) do not make use of the Keras API. \\ \\
+	The \textit{config} variable can take one of three values: \textit{model.config.TrainConfig} (if the aim is to train the model and to save the optimised parameters in a checkpoint on disk), \textit{model.config.EvalConfig} (if we want to evaluate the model) and \textit{model.config.PredictConfig} (if we want to use the model for prediction; in this case, it requires a pre-trained checkpoint to be loaded from disk). The UML in figure \ref{Fig: impl/ml/model/uml/configs} shows that all of these configurations also make use of inheritance, by extending \textit{models.config.ModelConfig}.
+	\begin{figure}[H]
+		\centering
+		\begin{subfigure}[b]{.3\textwidth}
+			\includegraphics[width=\textwidth]{graphics/umls/model-uml}
+			\caption{The \textit{Model} class}
+			\label{Fig: impl/ml/model/uml/model}
+			\hspace{1pt}
+		\end{subfigure}\hfill
+		\begin{subfigure}[b]{.55\textwidth}
+			\includegraphics[width=\textwidth]{graphics/umls/model-cnf-uml}
+			\caption{The various types of configurations used}
+			\label{Fig: impl/ml/model/uml/configs}
+		\end{subfigure}
+		\caption{\textit{Left:} UML of the \textit{Model} abstract class. \textit{Right:} Different types of configurations used.}
+		\label{Fig: impl/ml/model/uml}
+	\end{figure}
+	The three methods of the $Model$ class are abstract and will be implemented in classes inheriting from it. Table \ref{Table: impl/ml/model/purpose} explained what each method should implement in classes extending it.
+	\begin{longtable}{p{.3\textwidth}p{.6\textwidth}}
+		\textbf{method} & \textbf{purpose} \\
+		\hline
+		\textit{setup()} & Defining the elements of the model and, if using the \textit{models.config.PredictConfig} configuration, loading the optimised parameters from disk \\
+		\hline
+		\textit{train()} & Optimising the parameters of the model and saving the checkpoint on disk. Should only be accessible in \textit{models.config.TrainConfig} and \textit{models.config.EvalConfig} modes. \\
+		\hline
+		\textit{predict()} & Given an feature matrix, it runs the model and returns the predicted probabilities. \\
+		\hline
+		\caption{Abstract methods of the \textit{Model} class explained}
+		\label{Table: impl/ml/model/purpose}
+	\end{longtable}
 	\subsection{Regularization techniques} \label{Section: impl/ml/reg}
 	When training neural networks, one of the most frequent problems that can occur is \textbf{overfitting}: the model fits corresponds too closely to the training data and therefore fails to generalize as expected. This section addresses the techniques that I applied in order to avoid overfitting and also to speed up the training phase of my models.  
 	\subsubsection{Batch normalization} \label{Section: impl/ml/reg/batch}
@@ -135,6 +170,7 @@
 			\caption{Input \& hidden layer}
 			\label{Fig: impl/ml/mlp/compgraph-hidden}
 		\end{subfigure}
+		\hfill
 		\begin{subfigure}[b]{.4\textwidth}
 			\includegraphics[width=\textwidth]{graphics/nns/ml-compGraphOutput}
 			\caption{Output layer}
@@ -145,14 +181,14 @@
 	\end{figure}
 	
 	\subsection{Convolutional Neural Network} \label{Section: impl/ml/cnn}
-	In this section I describe the implementation of the third model implemented as part of the project, a Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional convolutional layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
+	In this section I describe the implementation of the third model implemented as part of the project, a Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional dilated convolution layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=\textwidth]{graphics/nns/cnn}
 		\caption{Architecture of the Convolutional Neural Network}
 		\label{Fig: impl/ml/cnn/architecture}
 	\end{figure}
-	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. The purpose of the convolutional layers is to learn a kernel that would be able to find patterns between the variables within each feature vector. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraphLast} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
+	The input layer performs batch normalization on the input data and then passes it to the first convolutional layer. Each of the 3 three convolutional layers uses a separate $1x2$ kernel, which is learned in during training. Figure \ref{Fig: impl/ml/cnn/compGraph} shows the computational graph of the first two convolutional layers, while Figure \ref{Fig: impl/ml/cnn/compGraphLast} shows the computational graph for the last convolutional layer, which also performs dropout regularization with keep probability $k_p = 0.8$ (Section \ref{Section: impl/ml/reg/dropout}) in order to avoid overfitting. 
 	\begin{figure}[H]
 		\centering
 		\begin{subfigure}[b]{.4\textwidth}
@@ -161,6 +197,7 @@
 			\caption{Computational graph for one of the first two convolutional layers}
 			\label{Fig: impl/ml/cnn/compGraph}
 		\end{subfigure}
+		\hfill
 		\begin{subfigure}[b]{.4\textwidth}
 			\centering
 			\includegraphics[width=.7\textwidth]{graphics/nns/cnn-compGraphLast}
@@ -174,7 +211,7 @@
 	\\ \\
 	Just like the MLP, the CNN optimizes the parameters using Adam and the \textbf{binary crossentropy} loss function with weight decay regularization (Equation \ref{Eq: impl/ml/loss}).
 	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
-	Another model implemented as part of the project was a Graph Attention Network. Unlike the other models implemented, it makes more use of the relational nature of the graph structure the data is stored in. 
+	Another model implemented as part of the project was a Graph Attention Network. Unlike the other models implemented, it makes more use of the relational nature of the graph structure the data is stored in and therefore I expect it to be a good fit to the data I am working on.
 	\\ \\
 	The key layer in this implementation is the \textbf{graph attention layer}, which maps any input vector $\mathbf{h}_i
 	 \in \mathbb{R}^{23}$ to a new one in $\mathbf{h}_i'\in \mathbb{R}^{32}$. First, for every node $i$, it computes the attention coefficients $\alpha_{i,j} = \text{softmax}(e_{i,j})$ for every neighbour $j$ of that node, which tells us how much that neighbour influences the current node. In my implementation,$e_{i,j}$ is given by the following expression:
@@ -238,7 +275,7 @@
 		z_k = \mathbf{w}_k^T \mathbf{x}
 		\label{Eq: impl/ml/pnn/innerprod}
 	\end{equation}   
-	and emits a nonlinear function of $z_k$. The nonlinear function in this case is $\exp(\frac{z_k-1}{\sigma^2})$, where $\sigma$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. This choice of nonlinearity can be reasoned by considering an (unnormalized) Gaussian window centred on the position of the training patterns $\mathbf{w}_k$. If we let the effective width $h_n$ to be a constant, the window function would be:
+	and emits a nonlinear function of $z_k$. The nonlinear function in this case is $\exp(\frac{z_k-1}{\lambda^2})$, where $\lambda$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. This choice of nonlinearity can be reasoned by considering an (unnormalized) Gaussian window centred on the position of the training patterns $\mathbf{w}_k$. If we let the effective width $h_n$ to be a constant, the window function would be:
 	\begin{equation}
 		\begin{split}
 			\varphi\bigg(\frac{\mathbf{x}_k - \mathbf{w}_k}{h_n}\bigg) & \propto \exp\bigg(\frac{
@@ -346,7 +383,7 @@
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
-		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models).}
+		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models). WILL UPDATE!!!!}
 		\label{Fig: impl/REST/API-integrate}
 	\end{figure}
 	The \textbf{feature extractor} can connect to any Neo4J database that has the structure described in Section \ref{Section: prep/datastructure} and extract feature vectors for the nodes. 
@@ -356,4 +393,7 @@
 	The REST-like architecture of the API allows for the server-side model to scale horizontally, by balancing the load between multiple instances of the server. The cache can then be either shared by all the instances, or have one cache for each instance. In both cases, though, the cache database can be scaled vertically by running it on a more powerful machine. 
 	
 	\section{Summary} \label{Section: impl/summary}
+	In this chapter I described the structure the tool implemented as part of this project. There are three core modules: the module that interacts with the Neo4J database, the machine learning module and the REST API module. For every one in particular, I described the limitations and difficulties I encountered and I motivated the decisions took when designing them. 
+	\\ \\
+	The following chapter will first show the results of evaluating the tool from multiple points of view(such as model performance or server service time) and then discuss and draw conclusions from these results. Furthermore, the next chapter also includes a comparative evaluation of the models from which I can conclude which would be more appropriate to be used in practice. 
 \end{document}

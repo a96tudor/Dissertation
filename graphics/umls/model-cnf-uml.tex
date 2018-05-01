@@ -1,0 +1,19 @@
+\documentclass[12pt,letterpaper]{standalone}
+\usepackage{pgf, tikz}
+\usetikzlibrary{arrows, automata}
+\usepackage{mwe} % For dummy images 
+\usetikzlibrary{positioning}
+\usepackage{tikz-uml}
+
+\begin{document}
+	\begin{tikzpicture}
+		\umlemptyclass[x=6, y=5, fill=yellow!10, alias=ModelConfig, type=abstract]{models.config.ModelConfig}{}{}
+		\umlemptyclass[x=0, y=0, fill=blue!10, alias=TrainConfig, type=abstract]{models.config.TrainConfig}{}{}
+		\umlemptyclass[x=6, y=0, fill=blue!10, alias=EvalConfig, type=abstract]{models.config.EvalConfig}{}{}
+		\umlemptyclass[x=12, y=0, fill=blue!10, alias=PredictConfig, type=abstract]{models.config.PredicConfig}{}{}
+		
+		\umlVHVinherit[thick]{ModelConfig}{TrainConfig};
+		\umlVHVinherit[thick]{ModelConfig}{EvalConfig};
+		\umlVHVinherit[thick]{ModelConfig}{PredictConfig};
+	\end{tikzpicture}
+\end{document}

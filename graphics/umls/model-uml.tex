@@ -1,0 +1,20 @@
+\documentclass[12pt,letterpaper]{standalone}
+\usepackage{pgf, tikz}
+\usetikzlibrary{arrows, automata}
+\usepackage{mwe} % For dummy images 
+\usetikzlibrary{positioning}
+\usepackage{tikz-uml}
+
+\begin{document}
+	\begin{tikzpicture}
+		\umlclass[x=0, y=0, alias=Model, fill=red!10]{models.Model} {
+			- model: keras.models.Model \\
+			- config: models.config.ModelConfig
+		} {
+			+ \_\_init\_\_(): void \\
+			+ setup(): void \\
+			+ train(): void \\
+			+ predict(): list
+		}
+	\end{tikzpicture}
+\end{document}
