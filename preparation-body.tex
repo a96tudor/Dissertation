@@ -82,68 +82,16 @@
 	\subsection{Data preprocessing} \label{Section: prep/data/feature-vectors}
 	The implemented machine learning models only look at 3 of the 6 types of nodes: \textbf{File}, \textbf{Process} and \textbf{Socket} nodes. 
 	\\ \\
-	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. Furthermore, for graph-specific models (such as Graph Attention Networks, described in section \ref{Section 2.2.4})  I also built the adjacency matrix of the given graph. 
+	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. Furthermore, for graph-specific models (such as Graph Attention Networks) I also built the adjacency matrix of the given graph. 
 	\\ \\
-	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node that with the closest timestamp to it. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it.
-	
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	%%%%%% FEATURES TABLE %%%%%%%%%%
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	
-	\begin{longtable}{| p{.12\textwidth} || p{.22\textwidth} | p{.22\textwidth} | p{.22\textwidth} | p{.15\textwidth} |}
-		\hline
-		\multirow{2}{3cm}{\textbf{Feature}} & \multicolumn{3}{c|}{\textbf{Explanation}} & \multirow{2}{2cm}{\textbf{Type}}\\
-		& Process & Socket & File &\\
-		\hline
-		\textit{Node type} & \multicolumn{3}{c|}{The type of node used in this case (i.e. Process, Socket or File)} & \textbf{Categorical} \\
-		\hline
-		\textit{Neighbour type} & The closest node connected to it. Has to be one of File and Process & 
-		\multicolumn{2}{c|}{Will always be Process} & \textbf{Categorical}\\
-		\hline
-		\textit{Edge type} & \multicolumn{3}{p{.75\textwidth}|}{The type of edge connecting the node to the neighbour. It will always be a $PROC\_OBJ$ edge, but the \textit{state} field can take multiple values, such as:  \textit{READ, WRITE, RaW, BIN, SERVER, CLIENT, NONE}.} & \textbf{Categorical}\\
-		\hline
-		\textit{Connected} & Whether the Process in question connects to a different machine via a Socket. & Whether the Sockets connects to an IP address other than 127.0.0.1. & Whether the File was downloaded from the web or not. & \textbf{Binary} \\
-		\hline
-		\textit{Neighbour connected} & \multicolumn{3}{c|}{Whether the neighbour is Connected or not.} & \textbf{Binary} \\ 
-		\hline
-		\textit{UID status} & Whether the uid is equal to the euid for the Process in question or not. & \multicolumn{2}{p{.50\textwidth}|}{Whether the uid is equal to the euid for the corresponding Process neighbour or not.} & \textbf{Binary} \\
-		\hline
-		\textit{GID status } & Whether the gid is equal to the egid for the Process in question or not. & \multicolumn{2}{p{.50\textwidth}|}{Whether the gid is equal to the gid for the corresponding Process neighbour or not.} & \textbf{Binary} \\
-		\hline
-		\textit{Version} & \multicolumn{3}{p{.75\textwidth}|}{The version number of the current node (i.e. how many nodes with the same ID and smaller timestamp are present in the graph.)} & \textbf{Integer} \\
-		\hline
-		\textit{Suspicious} & Whether the process accesses files in a restricted directory (eg: \textit{/etc/pwd, /usr/bin, /usr/lib, /bin, /lib}), whether the command starting the process contains keywords such as: \textit{sudo, chmod, usermod, groupmod, rm -rf}. & Whether the Process that initiated the Socket has the \textit{Suspicious} flag or not &Whether the file in question has a suspicious name, containing keywords such as: \textit{attack, worm, trojan, virus, etc.} & \textbf{Binary} \\
-		\hline
-		\textit{External} & Whether it connects to a different machine via a Socket. & Whether the Socket is to an IP address other than 127.0.0.1. & Whether the File contents are transmitted via a Socket to a different machine. & \textbf{Binary} \\
-		\hline
-		\textit{Degree} & \multicolumn{3}{c|}{The degree of the node in question.} & \textbf{Integer} \\
-		\hline
-		\textit{Neighbour degree} & \multicolumn{3}{c|}{The degree of the Neighbour} & \textbf{Integer} \\
-		\hline
-		\textit{Neighbour distance} & \multicolumn{3}{p{.75\textwidth}|}{
-			\makecell{
-			\begin{math}
-				=
-				 \begin{cases} 
-					0.0 & \text{if } \Delta t = 0\\
-					\log \Delta t & \text{otherwise} 
-				\end{cases} 
-			\end{math}
-			\\
-			where $\Delta t = abs(node.timestamp - neighbour.timestamp)$ 
-		} } & \textbf{Real} \\
-	\hline
-	\caption[Features table]{\centering Table listing and explaining the meaning of the features that are extracted for every node.}
-	\label{Table: prep/features}
-	\end{longtable}
-
+	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node that with the closest timestamp to it. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it. Out of these 13 features, 3 are categorical (such as the type of node in question), 6 are binary (i.e. taking a True/ False value), 3 are integers (e.g: the version number of the node) and one is real (the base 2 logarithm of the distance in epochs to the node's neighbour). Appendix \ref{Appendix: Feature-vector} breaks down these features and explains the reasoning behind them in detail. When using one-hot-encoding for the 3 categorical features, the feature vectors increase their length to 23.
 
 	\section{Machine learning models} \label{Section 2.2}
 	This section describes the underlying theory of the machine learning models explored as part of this project and how they can be applied to the data I am working on.
 
 	\subsection{Supervised learning using neural networks} \label{Section 2.2.2}
 	Given a training sequence $\mathbf{s} = [(\mathbf{x_1}, y_1), (\mathbf{x_2}, y_2) \dots (\mathbf{x_m}, y_m)]$, a neural network learns a hypothesis $h: \mathbb{R}^n \rightarrow \mathcal{C}$ that maps an input feature vector $\mathbf{x}$ to its corresponding label $y$. 
-	\\ \\
+	\\ \\ 
 	The hypothesis is set as $h(\mathbf{x}) = f(\mathbf{x}; \mathbf{w}, \mathbf{b})$, where $f$ is a function dependent on the neural network architecture and $\mathbf{w}$ and $\mathbf{b}$ are the weights and biases, respectively. 
 	\\ \\
 	A \textbf{loss function} is usually defined to measure some notion of the neural network's error when estimating $y$ from $\mathbf{x}$, given $\mathbf{w}$ and $\mathbf{b}$. The training step involves an optimisation algorithm which aims at finding $\mathbf{w}$ and $\mathbf{b}$ such that the loss function is minimized. 
@@ -324,57 +272,14 @@
 		\mathbf{h'}_i = \sigma \Bigg( \sum_{j \in \mathcal{N}_i} \alpha_{i,j} \mathbf{W} \mathbf{h}_j \Bigg) 
 	\end{equation}
 	where $\alpha$ is a nonlinear activation function. 
+	
 	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
 	So far, I discussed various parametric machine learning techniques I considered appropriate for the problem I am trying to solve. These models, though, treat supervised learning under the assumption that the forms of the underlying density functions were known, even though they rarely fit the densities actually encountered in practice. 
 	\\ \\
-	In this section, I examine how the probability density functions of the two classes (i.e. \textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). Firstly, they rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
-	\begin{equation}
-		\centering
-		P = \int_{\mathfrak{R}} p(\mathbf{x'}) d\mathbf{x'}
-	\end{equation}
-	Thus, $P$ is a smoothed version of the density function $p(\mathbf{x})$. Suppose that $m$ samples $\mathbf{x}_1,\dots ,\mathbf{x}_n$ are drawn independently and identically distributed (i.i.d.) accordingly to the probability law $p(\mathbf{x})$. The probability that $k$ of these $m$ fall in $\mathfrak{R}$ is given by the binomial law:
-	\begin{equation}
-		P_k = {n\choose k} P^k (1-P)^{n-k}
-	\end{equation}
-	and the expected value for $k$ is: $\mathbb{E}(k) = nP$. Moreover, this distribution for $k$ peaks about the mean so we expect that $\frac{k}{n}$ will be a very good estimate for the probability $P$. This is especially accurate for a very large $m$. 
-	\\ \\
-	Assuming $p(\mathbf{x})$ is continuous and the region $\mathfrak{R}$ is so small that $p$ does not vary appreciably with it, we can write:
-	\begin{equation}
-		 \begin{split}
-p(\mathbf{x}) &\approx \frac{P}{V} \\
-&\approx \frac{k / n}{V}
-\end{split}	
-	\label{Eq-np 1}
-	\end{equation}
-	where $\mathbf{x}$ is a point in $\mathfrak{R}$ and $V$ is the volume of the region $\mathfrak{R}$.
-	\\ \\
-	The equation \ref{Eq-np 1} behaves poorly when the volume $V$ approaches 0. Therefore, we want to estimate the density of $\mathbf{x}$ instead. We can do it iteratively by from a sequence of regions $\mathfrak{R}_1, \mathfrak{R}_2, \dots$, each containing $\mathbf{x}$ and every region $\mathfrak{R}_n$ being used with $n$ samples. Let $V_n$ be the volume of $\mathfrak{R}_n$, $k_n$ be the number of samples falling in $\mathfrak{R}_n$ and $p_n(\mathbf{x})$ the $n^\text{th}$ estimate for $p(\mathbf{x})$:
-	\begin{equation}
-		p_n(\mathbf{x}) = \frac{k_n/n}{V_n}
-		\label{Eq-np 2}
-	\end{equation}
+	In this section, I examine how the probability density functions of the two classes (i.e. \textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). The PNNs are based on the mathematical notion of \textbf{Parzen windows}, a technique of estimating the probability density functions for a set of classes, given a number of examples from each class. Appendix \ref{Appendix: Parzen/math-background} shows the mathematical background behind this theoretical concept.
 	
-	\subsubsection{Parzen windows}
-	This section describes the Parzen-window approach to estimating densities. It assumes that the region $\mathfrak{R}_n$ is a d-dimensional hypercube, where $h_n$ is the length of an edge. Then, we can estimate the volume $V_n = h_n^d$. Let $\varphi$ be the window function:
-	\begin{equation}
-		\varphi(\mathbf{u}) = \begin{cases}
-											 1 & |u_j| \leq \frac{1}{2}, \forall j \in \{1\dots d\} \\
-											 0 & \text{otherwise}
-									   	\end{cases}
-	\end{equation}
-	Thus, $\varphi(\mathbf{u})$ defines a unit hypercube centered at origin. It follows that $\varphi(\frac{\mathbf{x} - \mathbf{x}_i}{h_n})$ is equal to $1$ if $\mathbf{x}_i$ falls in hypercube of volume $V_n$, centered at $\mathbf{x}$ and $0$ otherwise. Therefore, the number of samples in this hypercube $k_n$ is given by:
-	\begin{equation}
-		k_n = \sum_{i=1}^{n} \varphi \bigg(\frac{\mathbf{x} - \mathbf{x}_i}{h_n}\bigg)
-	\end{equation}
-	By fitting this into equation \ref{Eq-np 2}, we can obtain the $n^{\text{th}}$ estimate of the probability distribution function $p_n(\mathbf{x})$: 
-	\begin{equation}
-		p_n(\mathbf{x}) = \frac{1}{n} \sum_{i=1}^{n} \frac{1}{V_n} \varphi \bigg( \frac{\mathbf{x} - \mathbf{x}_i}{h_n} \bigg)
-		\label{Eq-np 3}
- 	\end{equation} 
- 	In the general case, we want to allow more general window functions rather than limiting ourselves to a hypercube unit function. In such a case, the equation \ref{Eq-np 3} expresses our estimate of $p(\mathbf{x})$ as an average of functions of $\mathbf{x}$ and the samples $\mathbf{x}_i$. In essence, the window function is being used for \textit{interpolation} - each sample contributing to the estimate in accordance to the distance from $\mathbf{x}$.
- 	
- 	\subsubsection{Probabilistic Neural Networks}
- 	Probabilistic Neural Networks (PNNs) are classifiers based on Parzen windows. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class in $\mathcal{C}$. 
+	\subsubsection{Probabilistic Neural Networks}
+ 	Probabilistic Neural Networks (PNNs) are non-parametric classifiers that try to assign a class to an input pattern based on the pre-estimated probability density function of each class. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class in $\mathcal{C}$. 
 
   	\begin{figure}[H]
  		\centering

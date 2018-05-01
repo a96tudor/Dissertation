@@ -1,0 +1,48 @@
+\chapter{Mathematical background behind Parzen windows} \label{Appendix: Parzen/math-background}
+
+This appendix breaks down the mathematical background behind Parzen windows, the theoretical model behind Probabilistic Neural Networks. 
+\\ \\
+Firstly, they rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
+\begin{equation}
+\centering
+P = \int_{\mathfrak{R}} p(\mathbf{x'}) d\mathbf{x'}
+\end{equation}
+Thus, $P$ is a smoothed version of the density function $p(\mathbf{x})$. Suppose that $m$ samples $\mathbf{x}_1,\dots ,\mathbf{x}_n$ are drawn independently and identically distributed (i.i.d.) accordingly to the probability law $p(\mathbf{x})$. The probability that $k$ of these $m$ fall in $\mathfrak{R}$ is given by the binomial law:
+\begin{equation}
+P_k = {n\choose k} P^k (1-P)^{n-k}
+\end{equation}
+and the expected value for $k$ is: $\mathbb{E}(k) = nP$. Moreover, this distribution for $k$ peaks about the mean so we expect that $\frac{k}{n}$ will be a very good estimate for the probability $P$. This is especially accurate for a very large $m$. 
+\\ \\
+Assuming $p(\mathbf{x})$ is continuous and the region $\mathfrak{R}$ is so small that $p$ does not vary appreciably with it, we can write:
+\begin{equation}
+\begin{split}
+p(\mathbf{x}) &\approx \frac{P}{V} \\
+&\approx \frac{k / n}{V}
+\end{split}	
+\label{Eq-np 1}
+\end{equation}
+where $\mathbf{x}$ is a point in $\mathfrak{R}$ and $V$ is the volume of the region $\mathfrak{R}$.
+\\ \\
+The equation \ref{Eq-np 1} behaves poorly when the volume $V$ approaches 0. Therefore, we want to estimate the density of $\mathbf{x}$ instead. We can do it iteratively by from a sequence of regions $\mathfrak{R}_1, \mathfrak{R}_2, \dots$, each containing $\mathbf{x}$ and every region $\mathfrak{R}_n$ being used with $n$ samples. Let $V_n$ be the volume of $\mathfrak{R}_n$, $k_n$ be the number of samples falling in $\mathfrak{R}_n$ and $p_n(\mathbf{x})$ the $n^\text{th}$ estimate for $p(\mathbf{x})$:
+\begin{equation}
+p_n(\mathbf{x}) = \frac{k_n/n}{V_n}
+\label{Eq-np 2}
+\end{equation}
+
+Parzen windows assume that each region $\mathfrak{R}_n$ is a d-dimensional hypercube, where $h_n$ is the length of an edge. Then, we can estimate the volume $V_n = h_n^d$. Let $\varphi$ be the window function:
+\begin{equation}
+\varphi(\mathbf{u}) = \begin{cases}
+1 & |u_j| \leq \frac{1}{2}, \forall j \in \{1\dots d\} \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+Thus, $\varphi(\mathbf{u})$ defines a unit hypercube centered at origin. It follows that $\varphi(\frac{\mathbf{x} - \mathbf{x}_i}{h_n})$ is equal to $1$ if $\mathbf{x}_i$ falls in hypercube of volume $V_n$, centered at $\mathbf{x}$ and $0$ otherwise. Therefore, the number of samples in this hypercube $k_n$ is given by:
+\begin{equation}
+k_n = \sum_{i=1}^{n} \varphi \bigg(\frac{\mathbf{x} - \mathbf{x}_i}{h_n}\bigg)
+\end{equation}
+By fitting this into equation \ref{Eq-np 2}, we can obtain the $n^{\text{th}}$ estimate of the probability distribution function $p_n(\mathbf{x})$: 
+\begin{equation}
+p_n(\mathbf{x}) = \frac{1}{n} \sum_{i=1}^{n} \frac{1}{V_n} \varphi \bigg( \frac{\mathbf{x} - \mathbf{x}_i}{h_n} \bigg)
+\label{Eq-np 3}
+\end{equation} 
+In the general case, we want to allow more general window functions rather than limiting ourselves to a hypercube unit function. In such a case, the equation \ref{Eq-np 3} expresses our estimate of $p(\mathbf{x})$ as an average of functions of $\mathbf{x}$ and the samples $\mathbf{x}_i$. In essence, the window function is being used for \textit{interpolation} - each sample contributing to the estimate in accordance to the distance from $\mathbf{x}$.
