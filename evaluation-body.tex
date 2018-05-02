@@ -6,7 +6,17 @@
 		Even though the key module of the entire project was the one where the machine learning models are implemented, the set of features extracted for each node is at least as important because, without them being representative, the models will not be able to generalize well. For this reason, in this section, I will present the evaluation of the features I extracted for each node.
 		
 	\subsection{Feature importance algorithm} \label{Section: eval/features/alg}
-	
+		In order to measure the feature importance I made use of the Boruta algorithm, proposed by \textit{M. Kursa et al.}\cite{JSSv036i11}. It uses a random forest classification in order to compute the \textbf{z score} for every feature taken into consideration. 
+		\\ \\
+		In short, the algorithm is based on the same idea which forms the foundation of a random forest classifier, namely, that by adding randomness to the system and collecting results from the ensemble of randomized samples one can reduce the misleading impact of random fluctuations and correlations. In this case, this extra randomness provides a clearer view of which features really are important. The steps enumerated below are repeated until either the importance is assigned for all features or the algorithm has reached the previously set limit of random forests runs:
+		\begin{enumerate}
+			\item Extend the feature space by adding copies of all variables and then shuffle the added attributes in order to remove their correlations with the response.
+			\item Run a random forest classifier on the extended dataset and gather the z-scores computed.
+			\item Find the maximum z-score among the shadow features (MZSA) and assign a hit to every feature that scored better than MZSA
+			\item For each feature with undetermined importance perform a two-sided equality test with MZSA
+			\item Consider the features with importance significantly lower than MZSA as \textit{unimportant} and the ones with importance significantly higher than MZSA as \textit{important}.
+			\item Remove all shadow attributes
+		\end{enumerate}
 	\subsection{Results \& discussion} \label{Section: eval/features/results}
 		
 	\section{Evaluation of machine learning models} \label{Section: eval/ml}
@@ -65,11 +75,101 @@
 		\end{longtable}
 		
 		\subsection{Results \& discussion} \label{Section: eval/ml/results}
-	
-	
+
 		\section{Service time evaluation} \label{Section: eval/service-time}
-		This project is meant to be a full API that can be used 
-		\subsection{Results \& discussion} \label{Section: eval/service-time/results}
-		
+			This project is meant to be a complete API that can be used in practice by the CADETS user interface. Therefore, besides the performance of the machine learning model used, it is essential to evaluate it in terms of the service speed as well. All the timing results were obtained using my personal machine. For a job processing $N$ nodes, the service time is calculated using the following formula:  
+			\begin{equation}
+				\text{service\_time} = N\times [CCT + CHR \times CET + (1-CHR) \times (CT + RCT)] + MLT
+				\label{Eq: eval/service-time/overall}
+			\end{equation}
+			where: 
+			\begin{itemize}
+				\item $\mathbf{CCT} \in \mathbb{R}$ = Cache Check Time - time taking to check if a node is in the cache database and if the entry is still valid.
+				\item $\mathbf{CHR} \in [0, 1]$ = Cache Hit Rate.
+				\item $\textbf{CET} \in \mathbb{R}$ = Cache Extraction Time - time taking to extracted one cached result.
+				\item $\textbf{CT} \in \mathbb{R}$ = Classification Time - time taking to classify a node. 
+				\item $\textbf{RCT} \in \mathbb{R}$ = Result Caching Time - time required to add a new classification result to the cache database.
+				\item $\mathbf{MLT} \in \mathbb{R}$ = Model Loading Time - time required to configure the model (i.e. defining its components and load the corresponding pre-optimised parameters)
+			\end{itemize}
+			In practice, the API is expected to re-use many of the classification results. For this reason, I assume the the cache to have a hit-rate $CHR = 90\%$. For simulation purposes, the database was populated with $10, 000$ nodes and $30$ completed jobs, each having processed $1, 000$ nodes. 
+			\\ \\
+			The first step performed by the application when the new job is initiated is to check the cache and try to get the nodes that are cached. In this given simulation environment, the Cache Check Time, Cache Extraction Time and Result Caching Time are $CCT=??????????$, $CET=???????????$ and $RCT=??????????????$, respectively.  
+			
+		\subsection{Classification timings} \label{Section: eval/service-time/classification}
+			The classification time is not as straight-forward as the times shown so far. It was computed using the following formula:
+			\begin{equation}
+				CT = NTT + FET + MRT
+			\end{equation}
+			where: 
+			\begin{itemize}
+				\item $\mathbf{NTT} \in \mathbb{R}$ = Node Type Time - time required to get the node type
+				\item $\mathbf{FET} \in \mathbb{R}$ = Feature Extraction Time - time required to extract the features required for a node.
+				\item $\mathbf{MRT} \in \mathbb{R}$ = Model Running Time - time required for the model to produce a classification result for a node.
+			\end{itemize}
+			If a node is not in the cache, we first need to get the node type. The feature extraction time is dependent on this, as different node types require a slightly different feature extraction algorithm. Moreover, for a \textit{Meta} or \textit{Pipe} node, we also need to look for the closest \textit{Process} node to them. Table \ref{Table: eval/service-time/classification/fet} shows a breakdown of these timings, when the nodes are extracted from a database of $6,008$ nodes and taking into account the policy defined in Section \ref{Section: impl/REST/actual} from the Implementation chapter.
+			\begin{longtable}{|p{.1\textwidth} || p{.15\textwidth} | p{.20\textwidth}| p{.15\textwidth}| p{.20\textwidth} | }
+				\textbf{Node type} & \textbf{NTT} (s) & \textbf{Extra time} (s)& \textbf{FET} (s)& \textbf{Total FET} (s)\\
+				\hline
+				\textit{File} & & $0.0$ & & \\
+				\textit{Process} & & $0.0$ & & \\
+				\textit{Socket} & & $0.0$ & & \\
+				\textit{Meta} & & & & \\
+				\textit{Pipe} & & & & \\
+				\textit{Machine} & & $0.0$ & $0.0$ & \\
+				\hline
+				\caption{Breakdown of feature extraction times}
+				\label{Table: eval/service-time/classification/fet}
+			\end{longtable}
+			
+			Once the feature vectors are computed, they are passed to the machine learning models to be classified. Based on the model type, this task can take different amounts of time. Table \ref{Table: eval/service-time/classification/MRT} shows a breakdown of Model Load Time(MLT) and Model Running Time(MRT), based on the model type. 
+			
+			\begin{longtable}{|p{.15\textwidth}||p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|}
+				\textbf{Model} & \textit{Logistic Regression} & \textit{MLP} & \textit{CNN} & \textit{GAT} & \textit{PNN} \\
+				\hline
+				\textbf{MLT} (s) & & & & & \\
+				\hline
+				\textbf{MRT} (s) & & & & & \\
+				\hline
+				\caption{Breakdown of model running times}
+				\label{Table: eval/service-time/classification/MRT}
+			\end{longtable} 
+			The classification time can then be written as a function of node and model type as follows:
+			\begin{equation}
+				CT(nt, mt) = Total\_FET(nt) + MRT(mt)
+			\end{equation}
+			By using the node type distribution outlined in the histogram from Figure \ref{Figure 2.1.1}, I can compute the average classification time as a function of model type:
+			\begin{equation}
+				\hat{CT}(mt) = \sum_{nt\in \mathbf{\mathcal{N}}} (\mathbb{P}(nt) \times Total\_FET(nt)) + MRT(mt) 
+			\end{equation}  
+			where $\mathcal{N}$ is the set of available node types. Table \ref{Table: eval/service-time/classification/CT} shows the results of the average classification times for each model. 
+			
+			\begin{longtable}{|p{.15\textwidth}||p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|}
+				\textbf{Model} & \textit{Logistic Regression} & \textit{MLP} & \textit{CNN} & \textit{GAT} & \textit{PNN} \\
+				\hline
+				$\mathbf{\hat{CT}}$ (s) & & & & & \\
+				\hline
+				\caption{Breakdown of average classification times.}
+				\label{Table: eval/service-time/classification/CT}
+			\end{longtable}
+			
+			\subsection{Bringing it all together} \label{Section: eval/service-time/together}
+			Now that I have computed all the individual time values, I can bring them all together and compute the \textit{service time}, using Eq. \ref{Eq: eval/service-time/overall}. Table \ref{Table: eval/service-time/together/overall} shows the resulting service times for different model types, taking the number of nodes $N=1,000$.
+			\begin{longtable}{|p{.13\textwidth}||p{.1\textwidth}|p{.1\textwidth}|p{.1\textwidth}|p{.1\textwidth}|p{.1\textwidth}|p{.1\textwidth}||p{.1\textwidth}|}
+				\textbf{Model} & \textbf{N} & \textbf{CHR} & \textbf{CCT} (s)  & \textbf{RCT} (s)& $\mathbf{\hat{CT}}$ (s)& \textbf{MLT} (s)& \textbf{Total} (s)\\
+				\hline
+				\textit{Logistic Regression} & \multirow{5}{*}{$1000$} & \multirow{5}{*}{$0.90$} & \multirow{5}{*}{$0.0$} & \multirow{5}{*}{$0.0$} & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
+				\hhline{-~~~~---}
+				\textit{MLP} &  &  &  &  & $0.0$ & $0.0$ &\cellcolor{green!20} $\mathbf{0.0}$  \\
+				\hhline{-~~~~---}
+				\textit{CNN} &  &  &  &  & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
+				\hhline{-~~~~---}
+				\textit{GAT} &  &  &  & & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
+				\hhline{-~~~~---}
+				\textit{PNN} &  &  &  &  & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
+				\hline
+				\caption{Service time analysis results}
+				\label{Table: eval/service-time/together/overall}
+			\end{longtable}
+			{\LARGE \textbf{INCLUDE DISCUSSION}}
 		\section{Summary} \label{Section: eval/summary}
 \end{document}
