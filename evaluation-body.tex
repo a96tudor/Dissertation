@@ -75,7 +75,25 @@
 		\end{longtable}
 		
 		\subsection{Results \& discussion} \label{Section: eval/ml/results}
-
+		
+		\begin{longtable}{|p{.15\textwidth}|p{.18\textwidth}|p{.18\textwidth}|p{.18\textwidth}|p{.18\textwidth}|}
+			\hline
+			& \textbf{Logistic Regression} & \textbf{MLP} & \textbf{CNN} & \textbf{PNN} \\
+			\hline
+			\textit{Accuracy} & $91.48 \pm 0.90 \%$ &$91.87 \pm 1.35 \%$ & $93.74 \pm 6.5 \%$ &  $91.94 \pm 1.26 \%$ \\
+			\hline
+			\textit{Precision} & $97.81 \pm 0.81\%$& $98.23 \pm 3.41 \%$ & $97.28 \pm 1.10 \%$ &  $89.27 \pm 2.13 \%$ \\
+			\hline
+			\textit{Recall} & $86.92 \pm 1.60\%$& $86.85 \pm 3.98 \%$ & $91.52 \pm 1.51 \%$ & $92.51 \pm 1.15 \%$ \\
+			\hline
+			\textit{F3 score} & $87.90 \pm 1.46 \%$ & $87.83 \pm 3.37 \%$ & $92.06 \pm 1.31 \%$ &  $92.17 \pm 1.17 \%$ \\
+			\hline
+			\textit{MCC} & $83.62 \pm 1.65\%$& $84.13 \pm 2.29 \%$ & $87.59 \pm 1.30 \%$ &  $83.70 \pm 2.53 \%$\\
+			\hline
+		\end{longtable}
+		
+		
+		
 		\section{Service time evaluation} \label{Section: eval/service-time}
 			This project is meant to be a complete API that can be used in practice by the CADETS user interface. Therefore, besides the performance of the machine learning model used, it is essential to evaluate it in terms of the service speed as well. All the timing results were obtained using my personal machine. For a job processing $N$ nodes, the service time is calculated using the following formula:  
 			\begin{equation}
@@ -106,51 +124,50 @@
 				\item $\mathbf{FET} \in \mathbb{R}$ = Feature Extraction Time - time required to extract the features required for a node.
 				\item $\mathbf{MRT} \in \mathbb{R}$ = Model Running Time - time required for the model to produce a classification result for a node.
 			\end{itemize}
-			If a node is not in the cache, we first need to get the node type. The feature extraction time is dependent on this, as different node types require a slightly different feature extraction algorithm. Moreover, for a \textit{Meta} or \textit{Pipe} node, we also need to look for the closest \textit{Process} node to them. Table \ref{Table: eval/service-time/classification/fet} shows a breakdown of these timings, when the nodes are extracted from a database of $6,008$ nodes and taking into account the policy defined in Section \ref{Section: impl/REST/actual} from the Implementation chapter.
+			If a node is not in the cache, we first need to get the node type. The feature extraction time is dependent on this, as different node types require a slightly different feature extraction algorithm. Moreover, for a \textit{Meta} or \textit{Pipe} node, we also need to look for the closest \textit{Process} node to them. Table \ref{Table: eval/service-time/classification/fet} shows a breakdown of these timings\footnote{The time values were estimated by averaging over 100 runs of the feature extractor, with 20 nodes each.}, when the nodes are extracted from a database of $6,008$ nodes and taking into account the policy defined in Section \ref{Section: impl/REST/actual} from the Implementation chapter.
 			\begin{longtable}{|p{.1\textwidth} || p{.15\textwidth} | p{.20\textwidth}| p{.15\textwidth}| p{.20\textwidth} | }
-				\textbf{Node type} & \textbf{NTT} (s) & \textbf{Extra time} (s)& \textbf{FET} (s)& \textbf{Total FET} (s)\\
+				\textbf{Node type} & \textbf{NTT} (s) & \textbf{Time for finding the closest node} (s)& \textbf{FET} (s)& \textbf{Total FET} (s)\\
 				\hline
-				\textit{File} & & $0.0$ & & \\
-				\textit{Process} & & $0.0$ & & \\
-				\textit{Socket} & & $0.0$ & & \\
-				\textit{Meta} & & & & \\
-				\textit{Pipe} & & & & \\
-				\textit{Machine} & & $0.0$ & $0.0$ & \\
+				\textit{File} & \multirow{5}{*}{$0.13$}& $0.0$ & $0.78$& $\mathbf{0.91}$ \\
+				\hhline{-~---}
+				\textit{Process} & & $0.0$ & $0.83$ & $\mathbf{0.96}$\\
+				\hhline{-~---}
+				\textit{Socket} & & $0.0$ & $0.67$ & $\mathbf{0.80}$ \\
+				\hhline{-~---}
+				\textit{Pipe} & & $0.01$ & $0.83$ & $\mathbf{0.97}$ \\
+				\hhline{-~---}
+				\textit{Machine} & & $0.0$ & $0.0$ & $\mathbf{0.13}$\\
 				\hline
 				\caption{Breakdown of feature extraction times}
 				\label{Table: eval/service-time/classification/fet}
 			\end{longtable}
 			
-			Once the feature vectors are computed, they are passed to the machine learning models to be classified. Based on the model type, this task can take different amounts of time. Table \ref{Table: eval/service-time/classification/MRT} shows a breakdown of Model Load Time(MLT) and Model Running Time(MRT), based on the model type. 
-			
-			\begin{longtable}{|p{.15\textwidth}||p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|}
-				\textbf{Model} & \textit{Logistic Regression} & \textit{MLP} & \textit{CNN} & \textit{GAT} & \textit{PNN} \\
-				\hline
-				\textbf{MLT} (s) & & & & & \\
-				\hline
-				\textbf{MRT} (s) & & & & & \\
-				\hline
-				\caption{Breakdown of model running times}
-				\label{Table: eval/service-time/classification/MRT}
-			\end{longtable} 
-			The classification time can then be written as a function of node and model type as follows:
+			Once the feature vectors are computed, they are passed to the machine learning models to be classified. Based on the model type, this task can take different amounts of time. The classification time can then be written as a function of node and model type as follows: 
 			\begin{equation}
 				CT(nt, mt) = Total\_FET(nt) + MRT(mt)
 			\end{equation}
-			By using the node type distribution outlined in the histogram from Figure \ref{Figure 2.1.1}, I can compute the average classification time as a function of model type:
+			By using the node type distribution outlined in the histogram from Figure \ref{Figure 2.1.1}, one can compute the average feature extraction time as follows:
 			\begin{equation}
-				\hat{CT}(mt) = \sum_{nt\in \mathbf{\mathcal{N}}} (\mathbb{P}(nt) \times Total\_FET(nt)) + MRT(mt) 
+				\hat{FET} = \sum_{nt\in \mathbf{\mathcal{N}}} (\mathbb{P}(nt) \times Total\_FET(nt))
+			\end{equation} 
+			where $\mathcal{N}$ is the set of available node types. When plugging in the numbers, we get $\hat{FET} = 0.89\text{s}$. Using this, the average classification time as a function of model type can be written as: 
+			\begin{equation}
+				\hat{CT}(mt) =  \hat{FET} + MRT(mt) 
 			\end{equation}  
-			where $\mathcal{N}$ is the set of available node types. Table \ref{Table: eval/service-time/classification/CT} shows the results of the average classification times for each model. 
+			 Table \ref{Table: eval/service-time/classification/CT} shows the resulting $MLT$, $MRT$  and $\hat{CT}$ for each model.
 			
-			\begin{longtable}{|p{.15\textwidth}||p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|}
-				\textbf{Model} & \textit{Logistic Regression} & \textit{MLP} & \textit{CNN} & \textit{GAT} & \textit{PNN} \\
+			\begin{longtable}{|p{.15\textwidth}||p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|p{.15\textwidth}|}
+				\textbf{Model} & \textit{Logistic Regression} & \textit{MLP} & \textit{CNN} & \textit{PNN} \\
 				\hline
-				$\mathbf{\hat{CT}}$ (s) & & & & & \\
+				$\mathbf{MLT}$ (s) & & & &  \\
+				\hline
+				$\mathbf{MRT}$ (s) & & & & \\
+				\hline
+				$\mathbf{\hat{CT}}$ (s) & & & &  \\
 				\hline
 				\caption{Breakdown of average classification times.}
 				\label{Table: eval/service-time/classification/CT}
-			\end{longtable}
+			\end{longtable} 
 			
 			\subsection{Bringing it all together} \label{Section: eval/service-time/together}
 			Now that I have computed all the individual time values, I can bring them all together and compute the \textit{service time}, using Eq. \ref{Eq: eval/service-time/overall}. Table \ref{Table: eval/service-time/together/overall} shows the resulting service times for different model types, taking the number of nodes $N=1,000$.
@@ -163,7 +180,6 @@
 				\hhline{-~~~~---}
 				\textit{CNN} &  &  &  &  & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
 				\hhline{-~~~~---}
-				\textit{GAT} &  &  &  & & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
 				\hhline{-~~~~---}
 				\textit{PNN} &  &  &  &  & $0.0$ & $0.0$ & \cellcolor{green!20} $\mathbf{0.0}$ \\
 				\hline
