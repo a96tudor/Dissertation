@@ -36,8 +36,6 @@
 	The feature extractor uses the DatabaseDriver described in the previous section in order to build the feature vectors for a list of nodes, just as described in Table \ref{Table: prep/features}. Therefore, the two classes will be in an association relationship (i.e. the FeatureExtractor has one instance of DatabaseDriver), as displayed in Figure \ref{Fig: impl/neo4j-driver-uml}.
 	\\ \\
 	Considering the fact that the machine learning models require purely real feature vectors to work, I decided to use \textbf{onehot-hot-encoding} for the categorical features. In other words, for every such feature, I generated one extra boolean column for each category. Only one of these columns can take the value 1 for each sample. Using this encoding led to an increase in the length of the feature vectors, from 13 to 23 variables. 
-	\\ \\
-	On top of extracting the feature matrix, this module also has support for generating the adjacency matrix of the nodes from the list provided. This is required for models such as the Graph Attention Networks (Section \ref{Section: impl/ml/gat}).
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.5\textwidth]{graphics/umls/uml-neo4j-driver}
@@ -74,8 +72,6 @@
 		\textit{Multilayer Perceptron} & Adds a number of nonlinearities to the logistic regression and therefore should identify relationships between features better. Yet, it is simple and lightweight and should result in faster training and classification. \\
 		\hline
 		\textit{Convolutional Neural Network} & When using dilated convolution on an input vector, we can identify further relationships between the features. \\
-		\hline
-		\textit{Graph Attention Network} & Through the attentional layer, it makes better use of the relational nature of the data I am working with, unlike the other models which treat the nodes in isolation \\
 		\hline
 		\textit{Probabilistic Neural Network} & I wanted to experiment with a non-parametric technique, such as PNNs, which, given sufficient data, should overcome some of the limitations of the other models, which take a parametric approach. \\
 		\hline
@@ -229,36 +225,7 @@
 	The activation functions of the dense and output layers are ReLU and softmax, respectively. Figure \ref{Fig: impl/ml/mlp/compgraph} pictures the computational graphs for these two layers. 
 	\\ \\
 	Just like the MLP, the CNN optimizes the parameters using Adam and the \textbf{binary crossentropy} loss function with weight decay regularization (Equation \ref{Eq: impl/ml/loss}).
-	\subsection{Graph Attention Network} \label{Section: impl/ml/gat}
-	Another model implemented as part of the project was a Graph Attention Network. Unlike the other models implemented, it makes more use of the relational nature of the graph structure the data is stored in and therefore I expect it to be a good fit to the data I am working on.
-	\\ \\
-	The key layer in this implementation is the \textbf{graph attention layer}, which maps any input vector $\mathbf{h}_i
-	 \in \mathbb{R}^{23}$ to a new one in $\mathbf{h}_i'\in \mathbb{R}^{32}$. First, for every node $i$, it computes the attention coefficients $\alpha_{i,j} = \text{softmax}(e_{i,j})$ for every neighbour $j$ of that node, which tells us how much that neighbour influences the current node. In my implementation,$e_{i,j}$ is given by the following expression:
-	\begin{equation}
-		e_{i,j} = \text{LReLU}(\mathbf{a}^T[\mathbf{W}\mathbf{h}_i\vert\vert\mathbf{W}\mathbf{h}_j])
-	\end{equation}
-	where $\vert\vert$ represents the concatenation of two vectors and $\mathbf{a}\in\mathbb{R}^{64}$ and $\mathbf{W}\in\mathbb{R}^{32\times23}$ are parameters that are learned in the training phase. The full attention mechanism computing the coefficients $\alpha_{i,j}$ is shown by the schema in Figure \ref{Fig: impl/ml/gat/attn-mechanism}. 
-	\\ \\
-	After computing the attention coefficients for all node pairs $(i,j)$, the graph attention layer assigns a new input vectors $\mathbf{h}_i'$ as follows:
-	\begin{equation}
-		\mathbf{h}_i' = \text{eLU}\Bigg( \sum_{j \in \mathcal{N}_i} \alpha_{i,j} \mathbf{W} \mathbf{h}_j \Bigg)
-	\end{equation}
-	where $\mathcal{N}_i$ is the neighbourhood of node $i$ (i.e. the node's immediate neighbours) and $\text{eLU}$ is an activation function defined as:
-	\begin{equation*}
-		eLU(x) = 
-			\begin{cases}
-				0.1(e^x - 1), \text{ if } x < 0 \\
-				x, \text{ if } x \geq 0
-			\end{cases}
-	\end{equation*}
-	The attention layer then feeds its output into a dense one with 32 neurons and using the ReLU activation function, along with batch normalization and dropout. The next layer is the output one, with two neurones, which compute the softmax activation function in order to generate the probability distribution over the two classes.
-	\begin{figure}[H]
-		\centering
-		\includegraphics[width=.7\textwidth]{graphics/nns/gat}	
-		\caption[Attention mechanism]{The attention mechanism computing the attention coefficients \\ $\alpha_{i,j}=\text{softmax}_j(a(\mathbf{Wh}_i, \mathbf{Wh}_j))$, where $\mathbf{W}\in\mathbb{R}^{32\times23}$ is a weight matrix and $a$ is the Leaky ReLU (LReLU) activation function, parametrized by a weight vector $\mathbf{a}\in\mathbb{R}^{64}$, namely: \\  $a(\mathbf{Wh}_i, \mathbf{Wh}_j)=\text{LReLU}(\mathbf{a}^T[\mathbf{Wh}_i\mid\mid\mathbf{Wh}_j])$}.
-		\label{Fig: impl/ml/gat/attn-mechanism}
-	\end{figure}
-	Similarly to the previous two models, the Graph attention network is optimized using the Adam algorithm and the binary cross-entropy loss function. 
+ 
 	\subsection{Probabilistic Neural Network} \label{Section: impl/ml/pnn}
 	The implementation of Probabilistic Neural Networks (PNNs) consisted of two major algorithms: PNN training and classification.
 	\subsubsection*{PNN training}
