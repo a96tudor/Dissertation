@@ -251,32 +251,6 @@
 		\caption[Dilated convolution]{Dilated convolution schema reproduced from \textit{van den Oord et al.} \citep{DBLP:journals/corr/OordDZSVGKSK16}}
 		\label{Fig: prep/ml/cnn/dilated}
 	\end{figure}
-
-	\subsection{Graph Attention Network}	
-	This section describes Graph Attention Networks (GATs), state-of-the-art neural network architectures that operate on graph-structured data (as described by \cite{2017arXiv171010903V}). It is based on the attentional mechanisms that have proven to be extremely effective in tasks such as Neural Machine Translation (NMT)\cite{DBLP:journals/corr/LuongPM15, DBLP:journals/corr/VaswaniSPUJGKP17}. One of the benefits of these mechanisms is the fact that they allow for dealing with variable sized inputs, focusing on the most relevant parts of the input to make decisions. 
-	\\ \\
-	Unlike the other models discussed in this section, GATs take full advantage of the relational structure of the graph, by not treating the nodes as being isolated, but instead also looks at the neighbourhood of every node (i.e. the nodes being at mostly one hop distance from the one we want to classify). For this reason I considered this architecture as a potentially interesting model for the classification problem I am trying to solve.
-	\\ \\ 
-	By stacking layers in which nodes are able to attend over their neighbourhood's features, GATs enable specifying different weights to different nodes in a neighbourhood, without requiring any kind of costly matrix operations or depending on knowing the graph structure upfront. 
-	\\ \\
-	All GAT architectures include at least one \textbf{graph attentional layer}. The layer takes as input a set of node features, $\mathbf{s} = \{\mathbf{h}_1, \mathbf{h}_2, \dots , \mathbf{h}_N \}$, $\mathbf{h}_i \in \mathbb{R}^F$, where $N$ is the number of nodes and $F$ is the number of features of each node. It outputs a new set of node features( of potentially different cardinality $F'$) $\mathbf{s'} = \{ \mathbf{h'}_1, \mathbf{h'}_2, \dots , \mathbf{h'}_N \}$. In order to achieve this, it performs self-attention on the nodes - using a shared attentional mechanism $a:\mathbb{R}^{F'}\times\mathbb{R}^{F'}\rightarrow\mathbb{R}$ that computes the attention coefficients $e_{i,j}$:
-	\begin{equation}
-		e_{i,j} = a(\mathbf{W}\mathbf{h}_i, \mathbf{W}\mathbf{h}_j)		
-	\end{equation} 
-	where $\mathbf{W}$ is a weight matrix that is used to apply linear transformations to every node. Each attention coefficient $e_{i,j}$ indicates the importance of $j$'s features to node $i$. In order to take the graph structure into consideration, we compute $e_{i,j}$ only for the nodes $j \in \mathcal{N}_i$, where $\mathcal{N}_i$ is the neighbourhood of node $i$ in the graph. We want our coefficients to be easily comparable across different nodes, we normalize attention coefficients:
-	\begin{equation}
-		\alpha_{i,j} = \text{softmax}_j(e_{i,j}) = \frac{\exp(e_{i,j})}{\sum_{k\in \mathcal{N}_i} \exp(e_{i,k})}
-	\end{equation}
-	Once obtained, the normalized attention coefficients can be used to compute the new set of node features, $\mathbf{s} = \{ \mathbf{h'}_1, \mathbf{h'}_2, \dots , \mathbf{h'}_N  \}$. Each new feature vector $\mathbf{h'}_i$ is computed using the formula:
-	\begin{equation}
-		\mathbf{h'}_i = \sigma \Bigg( \sum_{j \in \mathcal{N}_i} \alpha_{i,j} \mathbf{W} \mathbf{h}_j \Bigg) 
-	\end{equation}
-	where $\alpha$ is a nonlinear activation function. 
-	
-	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
-	So far, I discussed various parametric machine learning techniques I considered appropriate for the problem I am trying to solve. These models, though, treat supervised learning under the assumption that the forms of the underlying density functions were known, even though they rarely fit the densities actually encountered in practice. 
-	\\ \\
-	In this section, I examine how the probability density functions of the two classes (i.e. \textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). The PNNs are based on the mathematical notion of \textbf{Parzen windows}, a technique of estimating the probability density functions for a set of classes, given a number of examples from each class. Appendix \ref{Appendix: Parzen/math-background} shows the mathematical background behind this theoretical concept.
 	
 	\subsubsection{Probabilistic Neural Networks}
  	Probabilistic Neural Networks (PNNs) are non-parametric classifiers that try to assign a class to an input pattern based on the pre-estimated probability density function of each class. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class in $\mathcal{C}$. 
@@ -310,7 +284,6 @@
 		Implementation of baseline model & High & Low & Low \\
 		MLP Implementation & High & Medium & Medium \\
 		Implementation of CNN & Medium & High & Medium \\
-		GAT Implementation & High & High & High \\
 		PNN Implementation & Medium & Medium & High \\
 		Implementation of the server infrastructure & High & Medium & Medium \\
 		Server-side caching implementation for previous results & Medium & Low & Low \\
@@ -354,7 +327,7 @@
 	\section{Starting point} \label{Section 2.6}
 	At the start of this project, I had intermediate knowledge of Python, having used it in the Part 1B group project and a number of other small personal projects. However, having had no previous experience with Keras, I had to become acquainted with the API and to learn how to use it to configure neural networks.   
 	\\ \\
-	In terms of theoretical background, the Artificial Intelligence I course provided sufficient initial knowledge to understand the high-level behaviour of MLPs. Additional research was required to understand the CNNs, GATs and non-parametric techniques implemented. The full list of Tripos courses that were applicable to the project can be seen in Table \ref{Table 2.4}.
+	In terms of theoretical background, the Artificial Intelligence I course provided sufficient initial knowledge to understand the high-level behaviour of MLPs. Additional research was required to understand the CNNs and non-parametric techniques implemented. The full list of Tripos courses that were applicable to the project can be seen in Table \ref{Table 2.4}.
 	
 	\begin{longtable}{|p{.40\textwidth} | p{.50\textwidth}|}
 		\textbf{Course} & \textbf{Applicability} \\ 
