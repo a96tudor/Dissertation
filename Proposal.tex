@@ -1,0 +1,312 @@
+\chapter{Project Proposal} \label{Appendix: Proposal}
+\begin{document}
+
+\begin{center}
+\Large
+Computer Science Tripos -- Part II -- Project Proposal\\[4mm]
+
+\large
+Tudor Avram, Homerton College
+
+Originator: Dr Ripduman~Sohan
+
+20 October 2017
+\end{center}
+
+\vspace{5mm}
+
+\textbf{Project Supervisor:} Dr Lucian~Carata
+
+\textbf{Director of Studies:} Dr  John~Fawcett
+
+\textbf{Project Overseers:} Prof. Ross~Anderson  \& Prof. Jean~Bacon
+
+% Main document
+
+\section*{Introduction}
+
+Cyber security has always been one of the biggest concerns of Computer Science, both in industry and in research. With the recent advances in Artificial Intelligence and Machine Learning, there has been an increasing number of tools that use them in order to identify malicious behaviour. One such tool is Clearcut\footnote{\url{https://github.com/DavidJBianco/Clearcut}}, which uses machine learning to help users focus on log entries that really require manual review. 
+
+My project is an extension to the CADETS UI, a cyber-security analyst user interface developed as part of the CADETS and OPUS research projects. It displays OS abstractions as a network that the analyst can explore in order to identify potentially malicious nodes.
+
+The broad objective is to meliorate the user experience, by making use of machine learning in order identify nodes of interest (i.e. with a user-defined property) from a graph describing OS-level abstractions (such as processes reading files or writing to sockets). Starting from a source node, I will aim to identify nodes that could be part of a malicious activity or suspicious behaviour, according to some user-defined criteria. Based on these recommendations, nodes will be either displayed, hidden or grouped together in the CADETS UI.
+
+Once the actual implementation is finished, I will evaluate the model I implemented using specific machine-learning techniques such as the holdout and cross-validation methods. 
+
+\section*{Starting point}
+
+Regarding my previous experience that would help me achieve the goal of this project, I took an online course in Machine Learning\footnote{https://www.coursera.org/learn/machine-learning}, publicly available on Coursera\footnote{https://www.coursera.org/}, which is a broad introduction to statistical pattern recognition. I have also implemented a few basic machine learning models, such as linear regression or random forests as part of hackathons I participated in. 
+
+In order to train my model, I will make use of the data describing real network intrusions and attacks as well as normal behaviour, collected as part of the CADETS and OPUS research projects. I will turn this data into an useful dataset for selected Common Vulnerabilities and Exposures (CVEs), using a publicly available list of CVEs\footnote{Available at the URL \url{https://www.cvedetails.com/vulnerability-list/}}
+
+In its current stage, the CADETS UI is a fully working user interface, with a code base written in NodeJS. 
+
+\section*{Resources required}
+For the purpose of this project, I will be using my personal computer(15" Macbook Pro, 2.8GHz Quad-core Intel Core i7, Turbo Boost up to 4.0GHz, 16GB 1600MHz DDR3L SDRAM, AMD Radeon R9 M370X with 2GB GDDR5 memory, 512GB SSD).\\
+
+As a backup, I will make use of Github and an 1TB portable HDD.
+
+\section*{Work to be done}
+
+The project can be divided in the following sub-projects: 
+
+\begin{enumerate}
+
+	\item \textbf{Understanding the data provided} -- First, I would have to understand how the data is structured and what it represents. After that, I would have to understand and model the concept of a "suspicious" node (i.e. working out, with reference to the data, how the concept of a "suspicious" event or set of events might be defined). 
+	
+	\item \textbf{Rules selection} -- I will make use of a publicly available CVEs list\footnote{Available at the URL \url{https://www.cvedetails.com/vulnerability-list/}}
+	to select a set of rules that I can use in processing my data in order to generate a meaningful training set.
+	
+	\item \textbf{Processing the data provided} -- I will turn the raw data into a useful dataset, by extracting known malicious and benign nodes, based on the set of CVEs that I selected. 
+	
+	\item \textbf{Research, development and implementation} -- First, I will research appropriate machine learning  algorithms in order to identify what would be appropriate to use in this case. After that, I will start to develop the actual model I will be using, by adapting pre-existing graph filtering algorithms to reflect my needs and to actually implement that model. 
+	
+	\item \textbf{Testing and debugging} -- Once the initial implementation is finished, I will use unit tests in order find and fix the bugs that might occur. This will ensure the implementation correctness. 
+	
+	\item \textbf{Training the model} -- With the model implemented and tested, I will train it on the dataset I built from the data collected as part of the OPUS and CADETS research projects.
+		
+	\item \textbf{Evaluation} -- I will start to evaluate the trained model quantitatively regarding time and space, as well as using classical machine-learning evaluation methods (such as cross-validation), which would give me information about the precision and recall of my model.
+	
+\end{enumerate}
+
+\section*{Success criteria}
+
+The project will be a success if I have completed a dissertation with the required chapters and I have implemented a successful machine learning based classification algorithm. The model will be evaluated regarding precision and recall, with the aim of achieving a 70\% accuracy in both. The evaluation will be performed using typical machine-learning methods, such as cross-validation, against the dataset I built from the raw data collected as part of the CADETS and OPUS projects.
+
+\section*{Possible extensions}
+
+If I achieve my main result early I shall try the following
+alternative experiments and methods of evaluation:
+
+\begin{enumerate}
+	\item \textbf{UX testing} -- The project's purpose is to be used by a pre-existent cyber-security analyst user interface. Therefore, it would make sense to evaluate the project from an user experience point of view (i.e. whether it is meliorated by the suggestions made by my model). 
+	
+	\item \textbf{See the nodes in context} -- Initially, the model will be classifying one node at a time as malicious/ not malicious. A possible extension would be to use the nodes' neighbours in classification, as well. This modified model would be able to identify malicious nodes that the initial approach might miss. 
+	
+\end{enumerate}
+
+\section*{Timetable}
+
+The planned starting date is 20/10/2017, after the project proposal is finalized.
+
+\begin{enumerate}
+	\item  \textbf{20/10/2017 - 01/11/2017}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+				\begin{itemize}
+					\item Familiarize with the data I will be working on
+					\item Research different applicable machine-learning-based algorithms
+					\item Background research into similar use-cases
+					\item Writing a document describing several alternatives and present it to my supervisor for review
+				\end{itemize}
+			\item \emph{Milestones:}
+				\begin{itemize}
+					\item Identifying appropriate algorithms that I can use in my implementation, based on the data I will be working on and submit the different possibilities to my supervisor for review
+				\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{02/11/2017 - 15/11/2017}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+				\begin{itemize}
+					\item Based on the feedback received from my supervisor, I will decide what algorithm I am going to use in my implementation
+					\item Adapt the algorithm in order to be applicable to data I will use (i.e. taking into account the properties of every node in the graph)
+					\item Presenting the possible solutions to my supervisor in the form of a document
+				\end{itemize}
+			\item \emph{Milestones:}
+				\begin{itemize}
+					\item Having a clear idea of what machine learning model I will use in my implementation
+					\item Having sent a document with the various data structuring solutions to my supervisor for review
+				\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{16/11/2017 - 29/11/2017}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Based on the feedback from my supervisor, I will choose how to structure my data
+				\item Selecting the rules I am going to use from a list of CVEs\footnote{Available at \url{https://www.cvedetails.com/vulnerability-list/}}
+				\item Use the rules selected I will structure the data into a training set, based on the structure I decided to use for my model. For example, one rule might be "a file that was downloaded from the web and executed".
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having a structured training set, with examples of both malicious and benign behaviour, that can be used by my model.
+			\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{30/11/2017 - 13/12/2017}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Implementing the network interface, that would communicate with the CADETS UI
+				\item Testing and debugging the network interface
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having a fully working, tested network interface 
+			\end{itemize}
+		\end{enumerate}
+	
+	
+
+	\vspace{5mm}
+	
+	\item \textbf{14/12/2017 - 27/12/2017}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Implementing the actual machine learning model 
+				\item Testing and debugging the model implemented
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having a fully working, tested model
+			\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{04/01/2018 - 17/01/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Integrating the two modules of my project (i.e. the network interface and the machine learning model)
+				\item Thoroughly testing and debugging the integration
+				\item Cleaning up the code 
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having a fully working and tested project
+			\end{itemize}
+		\end{enumerate}
+
+	\vspace{5mm}
+
+	\item \textbf{18/01/2018 - 31/01/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Training the model
+				\item Writing the progress report
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having a working, trained model that can be integrated with the CADETS UI
+				\item Having a progress report to hand in by 02/02/2018, 12pm	
+		\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{01/02/2018 - 14/02/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Integrating the model into an already-existent infrastructure as part of the CADETS UI 
+				\item Testing the integration
+				\item Getting the Progress Report Presentation ready
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having done the Progress Report Presentations
+				\item Having a fully working integration of my model
+			\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{15/02/2018 - 28/02/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Quantitatively evaluating the model from the point of view of the time and space requirements, in different scenarios
+				\item Producing graphs based on the evaluation
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Having representative data regarding the time and space requirements of my implementation
+				\item Having graphs exemplifying these requirements, which can be used in my final dissertation
+			\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{01/03/2018 - 14/03/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Quantitatively evaluating the model using typical machine-learning methods, such as cross-validation. 
+				\item Producing graphs based on the evaluation
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Have a good idea of how my model behaves from a precision and recall point of view 
+				\item Having clearly-labeled graphs that can be used to portray it in the final dissertation
+			\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{15/03/2018 - 28/03/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Writing the Preparation, Implementation and Conclusion chapters of the dissertation
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item Have a draft of these chapters that can be sent for feedback
+			\end{itemize}
+		\end{enumerate}
+	
+	\vspace{5mm}
+
+	\item \textbf{28/03/2018 - 11/04/2018}
+	\begin{enumerate}
+		\item \emph{Work to be done:}
+		\begin{itemize}
+			\item Writing the Introduction and Evaluation chapters
+		\end{itemize}
+		\item \emph{Milestones:}
+		\begin{itemize}
+			\item Have a full dissertation draft
+		\end{itemize}
+	\end{enumerate}
+	
+	\vspace{5mm}
+	
+	\item \textbf{26/04/2018 - 09/05/2018}
+		\begin{enumerate}
+			\item \emph{Work to be done:}
+			\begin{itemize}
+				\item Dissertation editing, based on the feedback received
+			\end{itemize}
+			\item \emph{Milestones:}
+			\begin{itemize}
+				\item  Having a close-to-final version of my dissertation
+			\end{itemize}
+		\end{enumerate}	
+	
+	\vspace{5mm}
+	
+	\item \textbf{10/05/2018 - 18/05/2018}
+	\begin{enumerate}
+		\item \emph{Work to be done:}
+		\begin{itemize}
+			\item Fine tuning of the dissertation
+		\end{itemize}
+		\item \emph{Milestones:}
+		\begin{itemize}
+			\item  Handing in the final dissertation by 18/05/2018, 12pm
+		\end{itemize}
+	\end{enumerate}	
+		
+\end{enumerate}
+
+\end{document}
