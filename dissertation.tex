@@ -104,87 +104,6 @@
 
 
 
-\bibliographystyle{plain}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%% TITLE %%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\pagestyle{empty}
-
-\rightline{\LARGE \textbf{Tudor Mihai Avram}}
-
-\vspace*{60mm}
-\begin{center}
-	\Huge
-	\textbf{Machine learning graph filtering} \\[5mm]
-	Computer Science Tripos -- Part II \\[5mm]
-	Homerton College \\[5mm]
-	\today  % today's date
-\end{center}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%% PROFORMA %%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\pagestyle{plain}
-
-\chapter*{Proforma}
-
-{\large
-	\begin{tabular}{ll}
-		Name:               & \bf Tudor Mihai Avram                     \\
-		College:            & \bf Homerton College                    \\
-		Project Title:      & \bf Machine learning graph filtering \\
-		Examination:        & \bf Computer Science Tripos -- Part II, July 2018  \\
-		Word Count:         & \bf $\mathbf{12,387}$\footnotemark[1] \\
-		Project Originator: & Dr Ripduman Sohan                   \\
-		Supervisor:         & Dr Lucian Carata                    \\ 
-	\end{tabular}
-}
-
-\footnotetext[1]{This word count was computed
-	by \texttt{texcount -texcount -quiet -merge -dir -sub=chapter -utf8 -sum dissertation.tex}
-}
-
-\section*{Original aims of the project}
-Traditional intrusion detection systems behave poorly in the case of large distributed systems. For this reason, there is a current need of new monitoring and analysis tools that reduce both false-positive rates and the cognitive burden on human analysts arises. One of such tools is the CADETS user interface, which presents OS-level provenance data as a graph structure. The original aim of this project was to implement and evaluate a machine learning algorithm that can be efficiently used to filter the nodes of interest from this provenance graph in order to facilitate a more efficient analysis.
-\section*{Work completed}
-This project has been successful. All success criteria were met and I implemented a number of optional extensions. I implemented and comparatively evaluated four machine learning models in terms of their applicability to the problem I am trying to solve in order to decide which are the most appropriate.  As an extension, I also implemented an automated data processing module that connects to the Neo4J database storing the graph data and represents the nodes in a feature-vector format, which can then be passed as input to the machine learning models. Another extension was implementing a REST API that would facilitate communications between the machine learning models and external entities, such as the CADETS user interface. Together with the machine learning models and the feature extractor, this makes the project presented here an independent and scalable tool that can be efficiently used for filtering graph-structured provenance data.
-\section*{Special Difficulties}
-None.
-\newpage
-
-\section*{Declaration}
-I, Tudor Mihai Avram of Homerton College,
-being a candidate for Part II of the Computer Science Tripos,
-hereby declare that this dissertation and the work described in it
-are my own work, unaided except as may be specified below, and
-that the dissertation does not contain material that has already
-been used to any substantial extent for a comparable purpose.
-\\ \\ 
-Signed 
-\includegraphics[height=2\baselineskip]{graphics/signature}
-\\ \\ 
-Date \today
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% TABLE OF CONTENTS %%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\tableofcontents
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%% LIST OF FIGURES %%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\listoffigures
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%% LIST OF TABLES %%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\listoftables
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%  INTRODUCTION %%%%%%%%%%%%%
@@ -222,16 +141,6 @@ Date \today
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%  BIBLIOGRAPHY %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\addcontentsline{toc}{chapter}{Bibliography}
-\bibliography{refs}
-\nocite{pnn, polonium, pnn-parallel, sigmoidal, nonlinearities, DBLP:journals/corr/LuongPM15, 7266837, 2017arXiv171010903V, 279181, DBLP:journals/corr/KingmaB14, DBLP:journals/corr/VaswaniSPUJGKP17, REST-general, chollet2015keras, DBLP:journals/corr/IoffeS15, Rutkowski2004}
-\include{parzen-body}
-\include{features-body}
-\include{mlp-optimisation-body}
-\include{adam-body}
-\include{Proposal}
 
 
 
