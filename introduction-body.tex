@@ -5,14 +5,14 @@
 	This dissertation explores how machine learning techniques can be applied for determining the important nodes and edges (according to set criteria) in large graphs, allowing their interactive exploration. This problem is particularly important for provenance graphs describing abstractions at the operating system level. A provenance graph accurately records the history of all interactions between objects such as files, processes, sockets and pipes on a given machine. When using such graphs for identifying potential attacks(network intrusion, sensitive data exfiltration) on systems, an analyst would need to sift through large and potentially irrelevant parts of the graph in search for suspicious activity. This project aims to provide a tool for helping the analyst in this task. To that end, I implemented and comparatively evaluated a number of machine learning models that classify nodes as being of interest or not. On top of these classifiers, I also implemented a server infrastructure that facilitates communication between the model and the client (see section \ref{1.2}). This allows the UI clients to access the predictions of the model with respect to node relevancy. 
 	
 	\section{Aims \& Motivation}  \label{1.1}
-	Analysing event logs of a distributed system to identify actionable security information and hence to act accordingly in order to improve a system's security has always been a desirable goal for both research and industry. The availability of cheap data storage has facilitated such large scale logs collection, on the order of several terabytes of data. This makes manual log review an unfeasible task. 
+	Analysing event logs of a distributed system to identify actionable security information and hence to act accordingly in order to improve a system's security has always been a desirable goal for both research and industry. The availability of cheap data storage facilitated such large scale logs collection, on the order of several terabytes of data, making manual log review an unfeasible task. 
 	\\ \\
 	Moreover, computer logs are becoming more structured. Using graphs to highlight the relationships between various records inside logs introduces a whole new dimension in terms of richness of the information that needs to be explored. Automatically processing such graphs in order to extract useful information can be difficult, as graphs cannot be directly provided as input to machine learning algorithms.
 	
 	\subsection{Overview of CADETS UI}\label{1.1.1}
-	The project at hand is an extension of the CADETS user interface, a cybersecurity provenance analysis tool developed as part of the CADETS and OPUS research projects. It displays OS-level abstractions as a network, emphasising the relationships between actors(processes, users) and objects(files, sockets, pipes). It is the analyst's task to explore this network in order to identify potentially suspicious nodes (i.e. nodes describing activities done by an attacker). 
+	This project is an extension of the CADETS user interface, a cybersecurity provenance analysis tool developed as part of the CADETS and OPUS research projects. It displays OS-level abstractions as a network, emphasising the relationships between actors(processes, users) and objects(files, sockets, pipes). It is the analyst's task to explore this network in order to identify potentially suspicious nodes(i.e. nodes describing activities done by an attacker). 
 	\\ \\
-	In order to provide the analyst with comprehensive data from which he can infer useful information, the network will have a large number of nodes. This makes exploring the entire dataset a very difficult task for a human.  For example, tracing done on two machines for 7 minutes can produce as many as 6,000 nodes in the network. As the number of machines and the time interval we do tracing on increase, this number will become considerably larger, presenting a significant scalability issue when it comes to manual reviewing. Therefore, it is imperative that we perform a filtering on these nodes in order to give the analyst any hope of finding relevant patterns.
+	In order to provide comprehensive data from which the analyst can infer useful information, the network will have a large number of nodes. This makes exploring the entire dataset a very difficult for humans.  For example, tracing done on two machines for 7 minutes can produce as many as 6,000 nodes in the network. As the number of machines and the time interval we do tracing on increase, this number will become considerably larger, presenting a significant scalability issue when it comes to manual reviewing. Therefore, it is imperative that we perform a filtering on these nodes in order to give the analyst any hope of finding relevant patterns.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.7\textwidth]{graphics/CADETS}
@@ -21,12 +21,12 @@
 	\end{figure}
 	
 	\subsection{Aims of the project}
-	In general, the number of nodes that are of interest to the analyst is significantly lower than the number of nodes that are not. Therefore, the aim of this project is to asses the suitability of different machine learning algorithms that would significantly improve the analyst's experience by reducing the number of nodes he would have to manually inspect. 
+	In general, the number of nodes that are of interest is significantly lower than the number of nodes that are not. Therefore, the aim of this project is to asses the suitability of different machine learning algorithms that would significantly improve the analyst's experience by reducing the number of nodes he would have to manually inspect. 
 	
 	\section{Overview of the architecture}\label{1.2}
-	The main component of the project is a supervised learning algorithm that classifies nodes from the graph as being of interest or not. The model is optimised using a labelled training set constructed based on a set of predefined ground-truths.
+	The project's main component is a supervised learning algorithm that classifies nodes from the graph as being of interest or not. The model is optimised using a labelled training set constructed based on a set of predefined ground-truths.
 	\\ \\
-	The communications between the CADETS user interface and the machine learning model is facilitated by a REST API(as shown in Figure \ref{Figure 1.2}). For performance purposes, it also uses a local cache of previous classifications. 
+	The communications between the CADETS UI and the machine learning model is facilitated by a REST API(as shown in Figure \ref{Figure 1.2}). For performance purposes, it caches previous classifications locally. 
 	\\ \\ 
 	When it receives a request from the client, the server would first check the local cache. If it can find the classification result for that node, then it just returns the cached value to the client.
 	\begin{figure}[H]
@@ -39,20 +39,20 @@
 	If the result is not in the cache or if the cached value is out of date, it runs the machine learning model in order to classify that specific node. Once the classification is done, the result is stored in the local cache and returned to the client. 
 	
 	\section{Related work}
-	Cyber security has always been a major concern in computer science, both in industry and in research. With the recent interest shown in artificial intelligence and machine learning, there has been an increasing number of tools that use related methodologies to identify malicious behaviour. The first 
-	part of this section will describe a general-purpose intrusion-detection system, while the following two subsections outline two tools that combine machine learning and intrusion detection in order to identify potentially malicious behaviour.
+	Cybersecurity has always been a major concern in computer science, both in industry and in research. With the recent interest shown in artificial intelligence and machine learning, there have been an increasing number of tools that use related methodologies to identify malicious behaviour. The first 
+	part of this section will describe a general purpose intrusion detection system, while the following two outline tools that use machine learning in order to identify potentially malicious behaviour.
 	
 	\subsection{Intrusion detection systems}
 	An intrusion detection system(IDS) is a system that monitors traffic for suspicious activity and issues alerts when such activity is discovered. While anomaly detection and reporting is their primary functionality, some IDSs are also capable of taking action when malicious activity or anomalous traffic is detected. 
 	\\ \\
-	There are numerous IDSs currently available. Snort\footnote{\textbf{\url{https://www.snort.org/}}} is one of the leading such tools with continued development both from the open source community and its corporate parent, Sourcefire Inc. It can detect probes or attacks, such as operating system fingerprinting (i.e. an attacker identifying the OS that is run on a specific machine). 
+	There are numerous IDSs currently available. Snort\footnote{\textbf{\url{https://www.snort.org/}}} is one of the leading such tools with continued development both from the open source community and its corporate parent, Sourcefire Inc. It can detect probes or attacks, such as operating system fingerprinting (i.e. an attacker identifying the OS that runs on a specific machine). 
 	\\ \\
-	Although they work reasonably well for personal use, traditional intrusion systems fail to stem the tide of attacks aiming at encrypting or destructing critical data when it comes to large scale systems. Therefore, a pressing need for new monitoring and analysis tools that reduce both false-positive rates and the cognitive burden on human analysts arises. The CADETS user interface is such a system and, using the extension implemented as part of this project, it will considerably reduce the amount of manual analysis required. 
+	Although they work reasonably well for personal use, traditional IDSs fail to stem the tide of attacks aiming at encrypting or destructing critical data when it comes to large scale systems. Therefore, a pressing need for new monitoring and analysis tools that reduce both false-positive rates and the cognitive burden on human analysts arises. The CADETS user interface is such a system and, using the extension implemented as part of this project, it will considerably reduce the amount of manual analysis required. 
 	
 	\subsection{Clearcut}
-	Clearcut\footnote{\textbf{\url{https://github.com/DavidJBianco/Clearcut}}} is an open source tool that uses Machine Learning techniques for incident detection. It takes HTTP proxy logs as input and filters them for manual review, in order to aid the analyst in reviewing them. 
+	Clearcut\footnote{\textbf{\url{https://github.com/DavidJBianco/Clearcut}}} is an open source tool that uses Machine Learning techniques for incident detection. It takes HTTP proxy logs as input and filters them, in order to aid the analyst in manually reviewing them. 
 	\\ \\ 
-	The algorithm used in this case is Random Forrest Classification, which essentially means using multiple decision trees and the resulting class corresponding to the mode of the classes returned by the decision trees running separately. 
+	The algorithm used in this case is Random Forest Classification, which essentially means using multiple decision trees. The resulting class corresponding to the mode of the classes returned by the decision trees running separately. 
 	\\ \\
 	Compared to Clearcut, the inputs for the project described in this dissertation have a graph structure, taking into consideration the logs as well as the relationships between them. This adds a new level of complexity to the problem I am trying to solve.
 	
@@ -62,8 +62,5 @@
 	Although the problem statement is similar to that my project tries to address, the algorithm used here is not applicable in my case, because it requires a very large dataset (Polonium uses a graph with $\approx 1$ billion nodes). It also requires a pre-computed \textit{machine reputation} score that in this case is calculated using a proprietary formula of Symantec\footnote{\textbf{\url{https://www.symantec.com/}}}, the company that produced the tool. 
 	\\ \\
 	Moreover, Polonium works at a much higher level in terms of events compared to what my project attempts. Namely, it uses significantly coarser grained graphs, with a lower diversity of objects: it only takes into consideration files and machines, while the dataset I used also includes processes, sockets and pipes. 
-	
-	\section{Licence} 
-	The code is publicly available as an open-source project on GitHub\footnote{\textbf{\url{https://github.com/a96tudor/Part2Project}}}, under an APACHE 2.0 licence\footnote{\textbf{\url{https://www.apache.org/licenses/LICENSE-2.0}}}. 
 
 \end{document}

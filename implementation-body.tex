@@ -1,13 +1,13 @@
 \begin{document}
 	\chapter{Implementation}
-	This chapter describes the describes how the requirements described previously have been accomplished. 
+	This chapter describes how the requirements described previously have been accomplished. 
 	\section{Overall structure of the project} \label{Section: impl/overview}
 	The main objective I had while implementing the project was to be able to have an independent tool that can communicate with the CADETS client and classify nodes successfully. In order to achieve this, I divided the overall project into three smaller sub-modules:
 	
 	\begin{enumerate}
-		\item \label{impl/overview/enum/1} The \textbf{Neo4J interface}, which handles the interaction between my tool and the Neo4J database that stores the raw graph data with the end purpose of extracting the nodes' feature vectors (Section \ref{Section: impl/neo4j}).
+		\item \label{impl/overview/enum/1} The \textbf{Neo4J interface}, which handles the interaction between my tool and the Neo4J database that stores the graph data with the end purpose of extracting the nodes' feature vectors (Section \ref{Section: impl/neo4j}).
 		
-		\item The \textbf{machine learning models}, which use the feature vectors extracted as part of the \ref{impl/overview/enum/1}$^{\text{st}}$ module in order to classify the nodes into \textit{SHOW} or \textit{HIDE} (Section \ref{Section: impl/ml}).
+		\item The \textbf{machine learning module}, which uses the feature vectors extracted as part of the \ref{impl/overview/enum/1}$^{\text{st}}$ module in order to classify the nodes into \textit{SHOW} or \textit{HIDE} (Section \ref{Section: impl/ml}).
 		
 		\item The \textbf{REST API}, which wraps around the previous two modules and handles requests received by the tool (Section \ref{Section: impl/REST}).
 	\end{enumerate}
@@ -21,9 +21,9 @@
 		\label{Fig: impl/pipeline}
 	\end{figure}
 	\section{Neo4J interaction} \label{Section: impl/neo4j}
-	This section describes the implementation of the Neo4J interaction module and how the features for every node are extracted. 
+	This section describes the implementation of the Neo4J interaction module and how the nodes' features are extracted. 
 	\subsection{Database driver} \label{Section: impl/neo4j/driver}
-	The biggest challenge when designing the database driver was the choice of the library I would use to run the actual queries. There are a number of Python libraries available, out of which I took two into consideration: \textbf{py2neo}\footnote{\textbf{\url{http://py2neo.org/v3/}}} and \textbf{neo4j-driver}\footnote{\textbf{\url{https://github.com/neo4j/neo4j-python-driver}}}. In order to decide which one I will use, I timed both libraries while the running two queries and the overall feature extraction for one node on a database of $631, 357 \text{ nodes}$. The resulting times are shown in Table \ref{Table: impl/neo4j-driver-timings}:
+	The biggest challenge when designing the database driver was the choice of the library I would use to run the actual queries. There are a number of Python libraries available, out of which I took two into consideration: \textbf{py2neo}\footnote{\textbf{\url{http://py2neo.org/v3/}}} and \textbf{neo4j-driver}\footnote{\textbf{\url{https://github.com/neo4j/neo4j-python-driver}}}. In order to decide which one I will use, I timed both libraries while running two queries and the overall feature extraction for one node on a database of $631, 357 \text{ nodes}$. The resulting times are shown in Table \ref{Table: impl/neo4j-driver-timings}:
 	\begin{longtable}{|p{.15\textwidth}|p{.30\textwidth}p{.25\textwidth}p{.25\textwidth}|}
 		\textbf{library} & \textbf{\textit{match(n) return n}} & \textbf{\textit{match(n) return n limit 1}} & \textbf{feature extraction} \\
 		\hline
@@ -37,52 +37,52 @@
 	\subsection{Feature extractor} \label{Section: impl/neo4j/features}
 	The feature extractor uses the DatabaseDriver described in the previous section in order to build the feature vectors for a list of nodes, just as described in Table \ref{Table: prep/features}. The UML diagram from Figure \ref{Fig: impl/neo4j-driver-uml} illustrates the relationships between the two classes.
 	\\ \\
-	Considering the fact that the machine learning models require purely real feature vectors to work, I decided to use \textbf{one-hot-encoding} for the categorical features. In other words, for every such feature, I generated an extra boolean column for each category. Only one of these columns can take the value 1 for each sample. Using this encoding led to an increase in the length of the feature vectors, from 13 to 23 variables. 
+	In order to ensure that the models are well-behaved, I decided to use \textbf{one-hot-encoding} for the categorical features. In other words, for every such feature, I generated an extra boolean column for each category. Only one of these columns can take the value 1 for each sample. Using this encoding led to an increase in the length of the feature vectors, from 13 to 23 variables. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.5\textwidth]{graphics/umls/uml-neo4j-driver}
-		\caption[FeatureExtractor UML class diagram]{\centering UML class diagram showing the interaction between FeatureExtractor and the DatabaseDriver.}
+		\caption[FeatureExtractor UML class diagram]{\centering UML class diagram showing the FeatureExtractor and the DatabaseDriver classes.}
 		\label{Fig: impl/neo4j-driver-uml}
 	\end{figure}
 	\section{Machine learning module} \label{Section: impl/ml}
 	With the first module being implemented, I started to look into different machine learning models that I would use to classify the nodes. 
 	\subsection{Training set} \label{Section: impl/ml/training-set}
-	One of the key requirements for a well-behaved machine learning model is to have a comprehensive training set. Keeping this in mind, I used the ground-truths listed in Section \ref{Section: prep/data/ground-truths} with the aim of extracting examples of nodes from both classes (i.e. \textit{SHOW} and \textit{HIDE}) from a database of $6,008$ nodes, out of which $5,498$ are of interest (i.e. either \textit{File}, \textit{Process} or \textit{Socket}). For all these selected nodes, I used the feature extractor in order to build a labelled training set $\mathbf{s}=\{ (\mathbf{x}_1, \mathbf{y_1}), \dots, (\mathbf{x}_n, \mathbf{y_n}) \}$ that will be used by all the models in the training phase. As expected, there is an imbalance in the training data, with $2,382$ nodes ($43.33\%$) being labelled as \textit{SHOW} and $3,115$ ($56.67\%$) being labelled as \textit{HIDE}. This is a factor that I took into consideration when designing the models.
+	One of the key requirements for a well-behaved machine learning model is to have a comprehensive training set. Keeping this in mind, I used the ground-truths listed in Section \ref{Section: prep/data/ground-truths} with the aim of extracting examples of nodes from both classes (i.e. \textit{SHOW} and \textit{HIDE}) from a database of $6,008$ nodes, out of which $5,498$ are of interest (i.e. either \textit{File}, \textit{Process} or \textit{Socket}). For all these nodes, I used the feature extractor in order to build a labelled training set $\mathbf{s}=\{ (\mathbf{x}_1, \mathbf{y_1}), \dots, (\mathbf{x}_n, \mathbf{y_n}) \}$ that will be used by all the models in the training phase. As expected, there is an imbalance in the training data, with $2,382$ nodes ($43.33\%$) labelled as \textit{SHOW} and $3,115$ ($56.67\%$) labelled as \textit{HIDE}. This is a factor that I took into consideration when designing the models.
 	
 	\subsection{The Keras environment} \label{Section: impl/ml/ecosys}
-	Keras is a high-level deep-learning API, that can run on top of TensorFlow\footnote{\textbf{\url{https://www.tensorflow.org/}}}, CNTK\footnote{\textbf{\url{https://github.com/Microsoft/cntk}}} or Theano\footnote{\textbf{\url{https://github.com/Theano/Theano}}}, providing user friendliness, modularity and extensibility. It allows for easy and fast prototyping, fitting well with the software engineering approach I took during the implementation stage. Moreover, Keras modules are highly portable: a model developed using one backend can just as easily work on any other accepted backend. For the implementation of the parametric techniques I experimented as part of this project, I used the TensorFlow backend for Keras. 
+	Keras is a high-level deep-learning API, that can run on top of TensorFlow\footnote{\textbf{\url{https://www.tensorflow.org/}}}, CNTK\footnote{\textbf{\url{https://github.com/Microsoft/cntk}}} or Theano\footnote{\textbf{\url{https://github.com/Theano/Theano}}}, providing user friendliness, modularity and extensibility. It allows for easy and fast prototyping, fitting well with the software engineering approach I took during the implementation stage. Moreover, Keras modules are highly portable: a model developed using one backend can just as easily work on any other accepted backend. For the implementation of the parametric techniques I experimented with as part of this project, I used the TensorFlow backend for Keras. 
 	\\ \\
-	The core data structure of Keras is a \textbf{Model}, an abstraction that gives users the ability to organize different type of layers. For most of the models presented here, I used the \textbf{Sequential} model, which represents a linear stack of layers. Running a model in Keras consists of 4 core elements:
+	The core data structure of Keras is a \textbf{Model}, an abstraction that gives users the ability to organize different types of layers. For the models presented here, I used the \textbf{Sequential} model, which represents a linear stack of layers. Running a model in Keras consists of 4 core elements:
 	\begin{enumerate}
 		\item \textbf{definition} - initialising the model and using the \textit{.add()} method to add layers.
 		
-		\item \textbf{compilation} - using the \textit{.compile()} method to define the loss function and optimizer that the model will use during the training phase, as well as any hyperparameters that they require. At this stage, one can also define the metrics that will be used for evaluating the model. 
+		\item \textbf{compilation} - using the \textit{.compile()} method to define the loss function and optimizer used during the training phase, as well as any hyperparameters that they require. At this stage, one can also define the metrics to be used for evaluating the model. 
 		
-		\item \textbf{training} - once the model was compiled, the \textit{.train()} method can be used to define the training and validation sets used for optimizing the weights and hyperparameters of the model, respectively. Here, the user can also define two other hyperparameters: the number of iterations for which the optimizer will run and the batch size, for batch-based optimisation methods. 
+		\item \textbf{training} - once the model was compiled, the \textit{.train()} is be used to define the training and validation sets used for optimizing the weights and hyperparameters of the model, respectively. Here, the user can define two other hyperparameters: the number of iterations for which the optimizer will run and the batch size, for batch-based optimisation methods. 
 		
 		\item \textbf{running} - with the model being optimized, the user can either use it to make predictions or to evaluate it, using the metrics defined in the compile stage. 
 	\end{enumerate}
-	The \textit{ModelCheckpoint} callback was used to save the pre-trained parameters of a given model to disk in hdf5 format\footnote{\textbf{\url{https://support.hdfgroup.org/HDF5/}}}. The checkpoints can be then loaded using the \textit{load\_weights()} method. Therefore, my implementation does not require training the model every time the application starts and is more time efficient.
+	The \textit{ModelCheckpoint} callback was used to save the pre-trained parameters of a given model to disk. These checkpoints can be then loaded using the \textit{load\_weights()} method. Therefore, my implementation does not require training the model every time the application starts and is time efficient.
 	
 	\subsection{Overview} \label{Section: impl/ml/overview}
-	In order to choose the most suitable model for the data I am working on, I first implemented a number of different machine learning algorithms and then comparatively evaluated them. This way, I could understand each model's suitability and performance on the fine-grained provenance data I am working on. One of the key properties I was looking for here was the robustness to the imbalance in the data I am working on. The models implemented and reasoning behind them are outlined in Table \ref{Table: impl/ml/overview/models} below and presented in detail in the following sections.
+	In order to choose the most suitable model for the data I am working on, I first implemented a number of different machine learning algorithms and then comparatively evaluated them. This way, I could understand each model's suitability and performance on this fine-grained provenance data. One of the key properties I was looking for was the robustness to the imbalance in the labels assigned to nodes. The models implemented and reasoning behind them are outlined in Table \ref{Table: impl/ml/overview/models} below and presented in detail in the following sections.
 	\\ \\
 	\begin{longtable}{|p{.30\textwidth}|p{.60\textwidth}|}
 		\textbf{Model} & \textbf{Implementation reason} \\
 		\hline
-		\textit{Logistic Regression} & Is the simplest classification algorithm and therefore I used it as a baseline for the other models' performance. \\
+		\textit{Logistic Regression} & Is the simplest classification algorithm and therefore I used it as a baseline for the other models' performance to be compared against. \\
 		\hline 
-		\textit{Multilayer Perceptron} & Adds a number of nonlinearities to the logistic regression and therefore should identify relationships between features better. Yet, it is simple and lightweight and should result in faster training and classification. \\
+		\textit{Multilayer Perceptron} & Adds a number of nonlinearities compared to logistic regression and therefore should identify relationships between features better. Yet, being simple and lightweight, should result in faster training and classification. \\
 		\hline
 		\textit{Convolutional Neural Network} & When using dilated convolution on an input vector, we can identify more relationships between the features than the previous models. \\
 		\hline
-		\textit{Probabilistic Neural Network} & I wanted to experiment with a non-parametric technique, such as PNNs, which, given sufficient data, should overcome some of the limitations of the other models, which take a parametric approach. \\
+		\textit{Probabilistic Neural Network} & I wanted to experiment with a non-parametric technique, such as PNNs, which, given sufficient data, should overcome some of the limitations of the other models. \\
 		\hline
 		\caption{Models implemented as part of this project.}
 		\label{Table: impl/ml/overview/models}
 	\end{longtable}
 
-	Throughout the entire implementation stage, I carefully followed the object-oriented paradigm, making use of class inheritance. For this reason, when implementing the machine learning models I first declared an abstract \textit{Model} base class(Figure \ref{Fig: impl/ml/model/uml/model}). The \textit{model} parameter is an instance of a Keras model used to actually run the model. I made this choice keeping in mind that some models (such as the PNN described in Section \ref{Section: impl/ml/pnn}) do not make use of the Keras API. 
+	Throughout the implementation stage, I carefully followed the object-oriented paradigm, making use of class inheritance. For this reason, when implementing the machine learning models I first declared an abstract base class, \textit{Model} (Figure \ref{Fig: impl/ml/model/uml/model}). The \textit{model} parameter is an instance of a Keras model used to actually run the model. I made this choice keeping in mind that some models (such as the PNN described in Section \ref{Section: impl/ml/pnn}) do not make use of the Keras API. 
 	\\ \\
 	The \textit{config} variable is used to determine whether the model is being trained, evaluated or simply used for predicting the corresponding classes.
 	\begin{figure}[H]
@@ -95,38 +95,38 @@
 		\end{subfigure}\hfill
 		\begin{subfigure}[b]{.55\textwidth}
 			\includegraphics[width=\textwidth]{graphics/umls/model-cnf-uml}
-			\caption{The various types of configurations used}
+			\caption{The types of configurations used}
 			\label{Fig: impl/ml/model/uml/configs}
 		\end{subfigure}
 		\caption{\textit{Left:} UML of the \textit{Model} abstract class. \textit{Right:} Different types of configurations used.}
 		\label{Fig: impl/ml/model/uml}
 	\end{figure}
-	The three methods of the $Model$ class are abstract and will be implemented in classes inheriting from it. Table \ref{Table: impl/ml/model/purpose} explained what each method should implement in classes extending it.
+	The three core methods of the $Model$ class will be implemented in classes inheriting from it. Table \ref{Table: impl/ml/model/purpose} explains what each method should implement in classes extending \textit{Model}.
 	\begin{longtable}{p{.3\textwidth}p{.6\textwidth}}
 		\textbf{method} & \textbf{purpose} \\
 		\hline
-		\textit{setup()} & Defining the elements of the model and, if using the \textit{models.config.PredictConfig} configuration, loading the optimised parameters from disk \\
+		\textit{setup()} & Defining the elements of the model and, if in the \textit{models.config.PredictConfig} mode, loading the optimised parameters from disk. \\
 		\hline
-		\textit{train()} & Optimising the parameters of the model and saving the checkpoint on disk. Should only be accessible in \textit{models.config.TrainConfig} and \textit{models.config.EvalConfig} modes. \\
+		\textit{train()} & Optimising the parameters of the model and saving the checkpoint on disk. Only accessible in \textit{models.config.TrainConfig} and \textit{models.config.EvalConfig} modes. \\
 		\hline
-		\textit{predict()} & Given an feature matrix, it runs the model and returns the predicted probabilities. \\
+		\textit{predict()} & Given a feature matrix, runs the model and returns the resulting probability distributions. \\
 		\hline
 		\caption{Abstract methods of the \textit{Model} class explained}
 		\label{Table: impl/ml/model/purpose}
 	\end{longtable}
 
 	\subsection{Regularization techniques} \label{Section: impl/ml/reg}
-	When training neural networks, one of the most frequent problems that can occur is \textbf{overfitting}: the model fits too closely to the training data and therefore fails to generalize as expected. This section addresses the techniques that I applied in order to avoid overfitting and also to speed up the training phase of my models.  
+	When training neural networks, one of the most frequent problems is \textbf{overfitting}: the model corresponds too closely to the training data and therefore fails to generalize as expected. This section addresses the techniques applied in order to avoid this issue.
 	\subsubsection{Batch normalization} \label{Section: impl/ml/reg/batch}
 	During the training phase, the distribution of each layer's input changes, as the parameters of the previous layer change, phenomenon known as \textit{internal covariance}. This slows down the training by requiring lower learning rates and careful parameter initialisation. 
 	\\ \\
-	In this section, I describe one technique for addressing this problem, by normalizing layer inputs. This technique is known as \textbf{batch normalization}\cite{DBLP:journals/corr/IoffeS15}, as it performs the normalization for every training mini-batch. 
+	In this section, I describe \textbf{batch normalization}\cite{DBLP:journals/corr/IoffeS15}, a technique which addresses this problem, by normalizing the layer inputs for every training mini-batch. 
 	\\ \\
-	Let $\{ \mathbf{x}_1, \dots, \mathbf{x}_m  \}$ be the input elements for a layer in the network. Each scalar feature is normalized independently, by making it have the mean of $0$ and variance of $1$.  The normalized input $\mathbf{\hat{x}}_k$ is computed as follows:
+	Let $\{ \mathbf{x}_1, \dots, \mathbf{x}_m  \}$ be the input elements for a layer in the network. Each scalar feature is normalized independently, by making it have mean $\mu = 0$ and variance $\sigma = 1$.  The normalized input $\mathbf{\hat{x}}_k$ is computed as follows:
 	\begin{equation}
 		\mathbf{\hat{x}}_k = \frac{\mathbf{x}_k - \mu}{\sqrt{\sigma + \epsilon}}
 	\end{equation}
-	where $\epsilon$ is a strictly positive constant used for to avoid division by zero and $\mu$ and $\sigma$ are the mean and variance of the original vector $\mathbf{x}_k$, respectively. Namely:
+	where $\epsilon > 0$ is a constant used for to avoid division by zero and $\mu$ and $\sigma$ are the mean and variance of the original vector $\mathbf{x}_k$. Namely:
 	\begin{longtable}{ccc}
 
 				$\mu = \frac{1}{m} \sum_{1}^{m} x_i$
@@ -136,31 +136,35 @@
 				$\sigma = \sqrt{\frac{1}{m}\sum_{1}^{m}(x_i - \mu)}$
 
 	\end{longtable}
-	By learning a scale ($\gamma$) and a shift ($\beta$), the model can fall back to the original values. The final output of BatchNorm is: 
+	By learning a scale ($\gamma$) and a shift ($\beta$) parameter, the model can fall back to the original values. The final output of BatchNorm is: 
 	\begin{equation}
 		\mathbf{z}_k = \gamma \mathbf{\hat{x}}_k + \beta
 	\end{equation} 
 	\subsubsection{Dropout} \label{Section: impl/ml/reg/dropout}
-	Dropout\cite{dropout} is a regularization technique which reduces overfitting in neural networks and is applied during training. The term 'dropout' refers to  dropping out units (both hidden and visible) - temporarily removing it from the neural network, along with all of its incoming and outgoing connections, as shown in Figure \ref{Fig: impl/ml/dropout}. The choice of which units are dropped is random.
+	Dropout\cite{dropout} is a regularization technique applied during training to reduce overfitting in neural networks. The term 'dropout' refers to  dropping out units (both hidden and visible) - temporarily removing it from the neural network, along with all of its incoming and outgoing connections, as shown in Figure \ref{Fig: impl/ml/dropout}. The choice of which units are dropped is random.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.8\textwidth]{graphics/nns/dropout}
 		\caption{\textit{Left:} MLP without using dropout. \textit{Right:} MLP after dropout is applied and neurons. The red crosses signify the neurons removed during training with probability $1-k_p$.}
 		\label{Fig: impl/ml/dropout}
 	\end{figure}
-	Each unit is retained with a fixed \textbf{keep probability} $k_p$, independent of other units in the network. Since dropout is only applied during training, the weights corresponding to a unit need to be scaled by $\frac{1}{k_p}$ at test time.
+	Each unit is retained with a fixed \textbf{keep probability} $k_p$, independently of other units in the network. Since dropout is only applied during training, the weights corresponding to a unit need to be scaled by $\frac{1}{k_p}$ at test time.
 	
 	\subsection{Baseline model} \label{Section: impl/ml/baseline}
-	As a baseline I implemented \textbf{logistic regression}, a single-neuron model that uses the softmax as its activation function in order to generate the probabilities that a feature vector $\mathbf{x}$ belongs to a class $C \in \{ SHOW, HIDE \}$: $\mathbb{P}(C\mid \mathbf{x}) = \text{softmax}(\mathbf{w}^T\mathbf{x})$. The node represented by the feature vector $\textbf{x}$ is then assigned the class that maximizes this probability:
+	As a baseline I implemented \textbf{logistic regression}, a single-neuron model that uses the softmax as its activation function in order to generate the probability distributions over the two classes: \textit{SHOW} and \textit{HIDE}. The node represented by the feature vector $\textbf{x}$ is then assigned the class with the maximum probability $\mathbb{P}(C_i\mid \mathbf{x})$:
 	\begin{equation}
-			C = \argmax_{C_i} \mathbb{P(C\mid \mathbf{x})} 
+	\centering
+	\begin{split}
+		C & = \argmax_{C_i} \mathbb{P}|(C_i\mid \mathbf{x}) \\
+		  & = \argmax_{C_i} (\text{softmax}_i (\mathbf{w}^T\mathbf{x}))
+	\end{split}
 	\end{equation} 
 	The optimizer used in this case was \textbf{mini-batch gradient descent}, with learning rate $\lambda = 0.01$. The loss function used was \textbf{binary crossentropy}, a special case of categorical crossentropy that applies to 2-class classification problems, such as the one I am trying to solve. 
 	
-	\subsection{Multilayer perceptron} \label{Section: impl/ml/mlp}
-	This section describes the implementation of the second model used as part of this project: the multilayer perceptron(MLP). In practice, an MLP architecture consists of an \textit{expansion phase}, where the number of neurons in the hidden layers increases and a \textit{reduction phase}, where their number decreases. This way, the features in the input data are combined in the expansion phase and then in the reduction phase the most important features are selected in order to determine the class.
+	\subsection{Multilayer perceptron} \label{Section: impl/m/mlp}
+	This section describes the implementation of the second model used as part of this project: the multilayer perceptron (MLP). In practice, an MLP architecture consists of an \textit{expansion phase}, where the number of neurons in the hidden layers increases and a \textit{reduction phase}, where their number decreases. This way, the features in the input data are combined in the expansion phase, while the most important features are selected in the reduction phase, in order to determine the class.
 	\\ \\
-	The MLP architecture I found most appropriate for the data used in my project consists 4 layers, as shown in Figure \ref{Fig: impl/ml/mlp}. The first layer is the input layer, consisting of 23 neurons (the number length of each feature vector). It is followed by two hidden layers: one with 32 neurons (the expansion phase) and one consisting of 16 neurons (the reduction phase). The output layer has two neurons, representing $\mathbb{P}(C|\mathbf{x})$ - the probability that a feature vector $\mathbf{x}$ belongs to a class $C \in \{ SHOW, HIDE \}$.
+	The MLP architecture I found most appropriate for the data used in my project consists of 4 layers, as shown in Figure \ref{Fig: impl/ml/mlp}. The first layer is the input layer, consisting of 23 neurons (the  length of each feature vector). It is followed by two hidden layers: one with 32 neurons (the expansion phase) and one consisting of 16 neurons (the reduction phase). The output layer has two neurons, representing $\mathbb{P}(C|\mathbf{x})$ - the probability that a feature vector $\mathbf{x}$ belongs to a class $C \in \{ SHOW, HIDE \}$.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.9\textwidth]{graphics/nns/mlp-impl}
@@ -170,7 +174,7 @@
 
 	The ReLU activation function was chosen for the first three layers of the MLP due to its linear non-saturating form. Moreover, research has shown that it significantly accelerates the convergence of the optimisation algorithm\cite{Nair:2010:RLU:3104322.3104425}. The output layer uses the softmax activation function in order to get the probability distribution over the two classes. 
 	\\ \\
-	Both the input and hidden layers use batch normalization in order to avoid overfitting, as described in Section \ref{Section: impl/ml/reg/batch}. For the same reason, I also applied dropout (Section \ref{Section: impl/ml/reg/dropout}) to these layers, with a keep probability $k_p = 0.8$. Figure \ref{Fig: impl/ml/mlp/compgraph} shows the computational graphs for the input and hidden layers (\ref{Fig: impl/ml/mlp/compgraph-hidden}) and the output layer (\ref{Fig: impl/ml/mlp/compgraph-output}), respectively.
+	The input and hidden layers use batch normalization in order to avoid overfitting. For the same reason, I also applied dropout to these layers, with a keep probability $k_p = 0.8$. Figure \ref{Fig: impl/ml/mlp/compgraph} shows the computational graphs for the input and hidden layers (\ref{Fig: impl/ml/mlp/compgraph-hidden}) and the output layer (\ref{Fig: impl/ml/mlp/compgraph-output}), respectively.
 	\subsubsection*{Training the MLP}
 	The loss function used for this model computes the binary crossentropy between the output distribution and the one-hot encoded labels from the trainig set. On top of this, I am using weight decay as a regularization technique in order to control the model's complexity by penalizing large weights. The final loss function has the following form:
 	\begin{equation}
@@ -179,7 +183,7 @@
 	\end{equation}
 	where $C_1$ and $C_2$ are the \textit{SHOW} and \textit{HIDE} classes, $\lambda$ is a hyperparameter and $\vert\vert\mathbf{w}\vert\vert$ is the $L_2$ norm of the weight vector, namely: $\vert\vert\mathbf{w}\vert\vert = \sqrt{\sum \vert w_i^2 \vert}$.
 	\\ \\
-	Adam\cite{DBLP:journals/corr/KingmaB14}, a variation of mini-batch gradient descent, is the algorithm used to optimize the model. Compared to other optimisation algorithms, Adam is more computationally effective, as it only requires first-order gradients to be computed and has lower memory requirements. It computes individual adaptive learning rates for different parameters from the first and second moments of the gradients. A more detailed explanation of how it works can be found in Appendix \ref{Appendix: Adam}.
+	Adam\cite{DBLP:journals/corr/KingmaB14}, a variation of mini-batch gradient descent, is the algorithm used to optimize the model. Adam is more computationally effective than other optimization algorithms, requiring just the first-order gradients to be computed and having lower memory requirements. It computes individual adaptive learning rates for different parameters from the first and second moments of the gradients. A more detailed explanation of how it works can be found in Appendix \ref{Appendix: Adam}.
 
 	\begin{figure}[H]
 		\centering
@@ -199,7 +203,7 @@
 	\end{figure}
 	
 	\subsection{Convolutional Neural Network} \label{Section: impl/ml/cnn}
-	In this section I describe the implementation of the third model implemented as part of the project, a Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional dilated convolutional layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
+	In this section I describe the implementation of the Dilated Convolutional Neural Network. From an architectural point of view, the CNN consists of: 1 input layer, consisting of 23 neurons, 3 single-dimensional dilated convolutional layers that increase the size of the feature vector from $1\times23$ to $1\times128$, 1 fully connected hidden layer and 1 output layer. Figure \ref{Fig: impl/ml/cnn/architecture} shows the architecture schema. 
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=\textwidth]{graphics/nns/cnn}
@@ -232,7 +236,7 @@
 	\subsection{Probabilistic Neural Network} \label{Section: impl/ml/pnn}
 	The implementation of Probabilistic Neural Network (PNN) consisted of two major algorithms: training and classification.
 	\subsubsection*{PNN training}
-	The first step in training the PNN is normalizing each pattern vector $\mathbf{x}$ to have unit length (i.e. scaled so that $\vert\vert \mathbf{x}\vert\vert = 1$). Then, the first normalized training pattern is placed on the input units. The weights linking the input units and the first pattern unit are set such that $\mathbf{w}_1 = \mathbf{x}_1$. Therefore, the weights will be normalized, too. Then, a single connection from the first pattern unit is made to the category unit corresponding to the class of the pattern. This process is repeated for each of the pattern units, setting the weights to the successive pattern units such that $\mathbf{w}_k=\mathbf{x}_k, \forall k \in \{1,\dots,n \}$. The pseudocode for this algorithm can be seen in Algorithm \ref{Alg: impl/ml/pnn/train} below.
+	The first step in training the PNN is normalizing each pattern vector $\mathbf{x}$ to have unit length (i.e. $\vert\vert \mathbf{x}\vert\vert = 1$). Each normalized training pattern is then placed on the input units and the weights linking them to the pattern units are set such that $\mathbf{w}_i = \mathbf{x}_i$. Then, a single connection from the pattern unit is made to the category unit corresponding to the class of the input pattern. Algorithm \ref{Alg: impl/ml/pnn/train} outlines the pseudocode of this algorithm.
 	\begin{algorithm}[H]
 		\caption{PNN training algorithm}
 		\label{Alg: impl/ml/pnn/train}
@@ -251,7 +255,7 @@
 			\EndProcedure
 		\end{algorithmic}
 	\end{algorithm}
-	After the training phase, the PNN will be fully connected between input and output pattern units and sparsely connected from pattern to category units. Figure \ref{Fig: impl/ml/pnn/architecture} shows the architecture of the PNN resulting from the algorithm above.
+	After the training phase, the PNN will be fully connected between input and pattern units and sparsely connected from pattern to category units. Figure \ref{Fig: impl/ml/pnn/architecture} shows the architecture of the PNN resulting from the algorithm above.
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=.8\textwidth]{graphics/nns/pnn-impl}
@@ -264,48 +268,9 @@
 		z_k = \mathbf{w}_k^T \mathbf{x}
 		\label{Eq: impl/ml/pnn/innerprod}
 	\end{equation}   
-	and emits $\exp(\frac{z_k-1}{\lambda^2})$, where $\lambda$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. This choice of nonlinearity can be reasoned by considering an (unnormalized) Gaussian window centred on the position of the training patterns $\mathbf{w}_k$. If we let the effective width $h_n$ to be a constant, the window function would be:
-	\begin{equation}
-		\begin{split}
-			\varphi\bigg(\frac{\mathbf{x}_k - \mathbf{w}_k}{h_n}\bigg) & \propto \exp\bigg(\frac{
-				-(\mathbf{x}-\mathbf{w}_k)^T(\mathbf{x}-\mathbf{w}_k)
-			}{
-				2\sigma^2
-			}\bigg) \\
-		 & = \exp\bigg(
-			 -
-			 \frac{
-				 \mathbf{x}^T\mathbf{x} + \mathbf{w}_k^T\mathbf{w_k} - 2\mathbf{x}^T\mathbf{w}_k 	
-			 }{
-				 2\sigma^2
-			 }
-		 \bigg)
-		\end{split}
-	\end{equation}
-	In the training phase, I ensured that all weights $\mathbf{w}_k$ are normalized (i.e. $\mathbf{w}_k^T\mathbf{w}_k = 1, \forall k \in \{1,\dots,n\}$). Moreover, the pattern we want to classify, $\mathbf{x}$, was normalized before being applied to the input units. Also, $z_k = \mathbf{w}_k^T\mathbf{x} = \mathbf{x}^T\mathbf{w}_k$. Therefore, the window function can be rewritten as: 
-	\begin{equation}
-		\begin{split}
-			\varphi\bigg(\frac{\mathbf{x}_k - \mathbf{w}_k}{h_n}\bigg) & \propto
-				\exp\bigg(
-					-
-					\frac{
-						1 + 1 - 2z_k
-					}{
-						2\sigma^2
-					}
-				\bigg) \\
-				& = \exp \bigg(
-					\frac{
-						z_k - 1
-					}{
-						2\sigma^2
-					}
-				\bigg)
-		\end{split}
-	\end{equation}
-	which is the nonlinearity we will apply. 
+	and emits $\exp(\frac{z_k-1}{\lambda^2})$, where $\lambda$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. The reasoning behind this nonlinearity is outlined in the Appendix \ref{Appendix: Parzen/math-background}, Section \ref{Section: appendix/pnn/parameter}.
 	\\ \\
-	Each category unit then sums the outputs of the pattern units connected to it. Thus, each pattern unit contributes to its associated category unit a signal equal to the probability the test pattern $\mathbf{x}$ was generated by a Gaussian centred on the associated training point. The sum of these local estimates gives the discriminant function $g_i(\mathbf{x})$ - the Parzen window estimate of the underlying distribution. The resulting class is then given by $\argmax_i g_i(\mathbf{x})$ (Algorithm \ref{Alg: impl/ml/pnn/classify}). 
+	Each category unit then sums the outputs of the pattern units connected to it. Thus, each pattern unit contributes to its associated category unit with a signal equal to the probability that the test pattern $\mathbf{x}$ was generated by a Gaussian centred on the associated training point. The sum of these local estimates gives $g_i(\mathbf{x})$ - the Parzen window estimate of the underlying distribution. The resulting class is then given by $\argmax_i g_i(\mathbf{x})$ (Algorithm \ref{Alg: impl/ml/pnn/classify}). 
 	\begin{algorithm}[H]
 	\caption{PNN classification algorithm}
 	\label{Alg: impl/ml/pnn/classify}
@@ -326,18 +291,18 @@
 		\EndProcedure
 	\end{algorithmic}
 	\end{algorithm}
-	The training algorithm only requires one pass through the training data and therefore the PNN is significantly faster at learning than the parametric methods, such as the MLP. The space complexity can be easily determined by counting the number of wires in Figure \ref{Fig: impl/ml/pnn/architecture}: $O((n+1)d)$, where $n$ is the number of patterns in the training set and $d$ is the length for each pattern. The time complexity for classification is $O(n)$, but can be done in $O(1)$ by computing the inner products from equation \ref{Eq: impl/ml/pnn/innerprod} in parallel. Therefore, the PNN to the problem at hand, as I don't have limited storage availability and classification speed is a key requirement for the API. 
+	The training algorithm only requires one pass through the training data and therefore the PNN is significantly faster at learning than the parametric methods, such as the MLP. The space complexity can be easily determined by counting the number of wires in Figure \ref{Fig: impl/ml/pnn/architecture}: $O((n+1)d)$, where $n$ is the number of patterns in the training set and $d$ is the length for each pattern. The time complexity for classification is $O(n)$, but can be done in $O(1)$ by computing the inner products from equation \ref{Eq: impl/ml/pnn/innerprod} in parallel. Therefore, the PNN is highly applicable to my problem, as I don't have limited storage availability and classification speed is a key requirement for the API. 
 	
 	\section{REST API} \label{Section: impl/REST}
 	This section describes how the REST API module was implemented.
 	\subsection{Requests handling} \label{Section: impl/REST/actual}
 	The main entry point to the REST API receives a POST HTTP request from the client, containing a JSON file with a list of nodes to classify. Each node in the list will be represented by a (\textit{uuid}, \textit{timestamp}) pair, which allows the tool to uniquely identify it in the Neo4J database. The API then initiates a 'job' that starts classifying the nodes in background and replies with a JSON containing its ID.
 	\\ \\
-	Using this job ID, the client can then query the API using an HTTP GET request and the API will reply with a different JSON containing two fields: \textit{"results"} and \textit{"status"}. The \textit{"results"} field contains the list of nodes that have been classified so far as part of the job in question. The \textit{"status"} field can take one of three values, depending on what the status of the job is: \textit{WAITING} means that it is idle, \textit{RUNNING} means that the job is still classifying nodes and therefore the results returned are partial (i.e. only for a subset of the nodes) and \textit{DONE} represents the fact that the job is finished and the returned classification results are for the entire set of nodes queried initially. 
+	Using this job ID, the client can then query the API using an HTTP GET request and the API will reply with a different JSON containing the list of nodes that have been classified so far and the status of the job, which can be one of: \textit{WAITING} (meaning that it is idle), \textit{RUNNING}(representing that the job is still classifying nodes and therefore the results returned are partial) and \textit{DONE} (meaning that the job is finished and the returned classification results are for the entire set of nodes queried initially). 
 	\\ \\
-	I decided to implement this 2-step mechanism due to the fact that node classification can take a long time, especially when working with large databases. This way, the client sends one request and then can query the API at any time for the job status and partial or final classification results. Figure \ref{Fig: impl/REST/API-integrate} shows how these jobs work in relation with the other modules.
+	I decided to implement this two-step mechanism considering that node classification takes a long time, especially when working with large databases. This way, the client sends a request and can then query the API at any time for the job status and partial or final classification results. 
 	\\ \\
-	Another key factor that I took into consideration is how the API will treat different types of nodes, given the fact that the machine learning models only apply to \textit{File}, \textit{Socket} and \textit{Process} nodes. Table \ref{Table: impl/REST/API-strategy} shows the strategies adopted by the API for different types of nodes.
+	Another key factor that I took into consideration is how the API will treat different types of nodes, considering that the machine learning models only apply to \textit{File}, \textit{Socket} and \textit{Process} nodes. Table \ref{Table: impl/REST/API-strategy} shows the strategies adopted by the API for different types of nodes.
 	\begin{longtable}{|p{.15\textwidth}|p{.85\textwidth}|}
 		\textbf{Node type} & \textbf{API strategy} \\
 		\hline
@@ -345,7 +310,7 @@
 		\textit{Socket} & \\
 		\textit{Process} & \\
 		\hline
-		\textit{Machine} & Only represents $0.00178\%$ of the total number of nodes, so consider classified as \textit{SHOW} by default. \\
+		\textit{Machine} & Only $0.00178\%$ of the total number of nodes, so consider classified as \textit{SHOW} by default. \\
 		\hline
 		\textit{Meta} & \multirow{2}{*}{Return the classification result for the \textit{Process} node that it is connected to.} \\
 		\textit{Pipe} & \\
@@ -357,32 +322,42 @@
 	\subsection{Caching mechanism} \label{Section: impl/REST/caching}
 	Due to the stateless nature of REST APIs, caching is a desirable feature in order to avoid a high load on the application. Moreover, an efficient caching mechanism is essential to support the 2-step format of the API described previously. 
 	\\ \\
-	In order to handle caching, I am using a PostgreSQL database, for its object-relational format. It is an open source and highly customizable SQL dialect, providing stored procedures in more than a dozen programming languages, including Java, Perl and Python. 
+	In order to handle caching, I am using a PostgreSQL database. It is an open source and highly customizable SQL dialect, providing stored procedures in more than a dozen programming languages, including Java, Perl and Python. 
 	\\ \\
 	The actual database structure is made of three tables: \textit{Jobs} (storing all the jobs processed by the server and their status), \textit{Nodes} (storing the cached results for the nodes) and \textit{JobsToNodes} (storing the relationships between jobs and nodes). The full relational schema is shown in Figure \ref{Fig: impl/REST/cache/relational}.
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=.7\textwidth]{graphics/cache-schema}
+		\includegraphics[width=\textwidth]{graphics/cache-schema}
 		\caption[Cache schema]{Relational schema used by the caching mechanism}
 		\label{Fig: impl/REST/cache/relational}
 	\end{figure}
 	By default, every cache entry is invalidated 24 hours after the job that the node is associated with is finished. On top of this, the API provides an entry point for forcibly clearing the cache. 
+	\\ \\
+	Figure \ref{Fig: impl/REST/cache/jobs} shows the UML diagram of the core classes of the REST API.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.9\textwidth]{graphics/umls/jobs-uml}
+		\caption{UML diagram of server-side job handling}
+		\label{Fig: impl/REST/cache/jobs}
+	\end{figure}
 	
 	\section{Software engineering practices} \label{Section: impl/SoftEngPractices}
 	In this section I will present the software engineering practices that were followed throughout the implementation stage. These practices where essential, especially considering the fact that the project has a codebase of almost $3,000$ lines of code\footnote{Calculated using the open-source tool \textbf{cloc}: \textbf{\url{https://github.com/AlDanial/cloc}}}. 
 	\\ \\
-	Firstly, I divided the project into three core modules that interact with one another and can easily be tested and optimised separately. In order to achieve this, every module makes use of the object-oriented paradigm (as shown in Figure \ref{Fig: impl/REST/API-integrate}). Moreover, this allows anyone who wants to extend the tool to do so with ease, by simply extending one class and specifying this when starting the API.  
+	Firstly, I divided the project into three core modules that interact with one another and can easily be tested and optimised separately. In order to achieve this, every module makes use of the object-oriented paradigm. Moreover, this allows anyone who wants to extend the tool to do so with ease, by simply extending one class and specifying this when starting the API.  
+	\\ \\
+	The connection between the three modules only depends on three classes: \textit{RequestJob}, \textit{Model} and \textit{DatabaseDriver}(Figure \ref{Fig: impl/REST/API-integrate}). This way, each module can be extended separately, without interfering with the other two, guaranteeing their independence.  
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=.9\textwidth]{graphics/umls/full-system-uml}
-		\caption[General UML diagram]{\centering UML diagram showing the integration of API's jobs with the previous two modules(i.e. feature extractor and machine learning models). WILL UPDATE!!!!}
+		\includegraphics[width=.9\textwidth]{graphics/umls/uml-connections}
+		\caption[General UML diagram]{\centering UML diagram showing the integration of the three modules.}
 		\label{Fig: impl/REST/API-integrate}
 	\end{figure}
 	Another goal I set was the scalability of the API. For this reason, I decided to use a REST-like architecture, which allows this module to scale horizontally, by balancing the load between multiple instances of the server. The cache can then be either shared by all the instances, or have one cache for each instance. In both cases, though, the cache database can be scaled vertically by running it on a more powerful machine. 
 	\\ \\
 	I also made use of the new features provided by Python $3.6$ by \textit{statically typing} the functions' arguments and return types. In order to ensure their correct behaviour, I wrote unit tests for most of the core functionalities of the project.
 	\section{Summary} \label{Section: impl/summary}
-	In this chapter I described the structure the tool implemented as part of this project, with the three core modules: Neo4J interaction and feature extraction, machine learning module and REST API module. For every one in particular, I described the limitations and difficulties I encountered and I motivated the decisions took when designing them. 
+	In this chapter I described implementation of the three core modules of the project and their interaction. For every module, I described the limitations and difficulties I encountered and I motivated the decisions took when designing them. 
 	\\ \\
-	The following chapter will first show the results of evaluating the tool from multiple points of view(such as model performance or server service time) and then discuss and draw conclusions from these results. Furthermore, the next chapter also includes a comparative evaluation of the models from which I can conclude which would be more appropriate to be used in practice. 
+	The following chapter will first show the results of evaluating the tool from multiple points of view(such as model performance or server service time) and then discuss these results. Furthermore, the next chapter also includes a comparative evaluation of the models from which I can decide which would be more appropriate in practice. 
 \end{document}

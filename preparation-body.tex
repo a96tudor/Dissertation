@@ -3,16 +3,16 @@
 	In this chapter, I will outline all the work completed prior to writing any code. This includes a discussion on the structure of the data and the decisions made for pre-processing it (section \ref{Section 2.1}), the theory behind the models that were implemented (section \ref{Section 2.2}) and an outline of the server architecture (section \ref{Section 2.3}) as well as the requirements analysis and software engineering principles applied for a successful implementation(section \ref{Section 2.4}).
 	
 	\section{Data analysis} \label{Section 2.1}
-	This section describes the raw data used by the CADETS user interface and how it is preprocessed in order to be used by the machine learning models described in section \ref{Section 2.2}.
+	This section describes the raw data used by CADETS UI and how it is preprocessed in order to be used by the machine learning models.
 	\\ \\
 	The data used by the CADETS UI is stored in a Neo4J\footnotemark[1] graph database. This gives a simple and straightforward representation of the OS-level abstractions we want to store as well as of their relationships.
 
 	\footnotetext[1]{\textbf{\url{https://neo4j.com/}}}
 	
 	\subsection{Data structure analysis} \label{Section: prep/datastructure}
-	The data is stored as a graph, consisting of nodes and edges. Here, nodes represent the actors(processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(uuid, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
+	The data is stored as a graph. Here, nodes represent the actors (processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(uuid, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
 	\\ \\
-	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of the nodes' frequencies. The \textit{Meta} nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the \textit{File} nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a bias classifier (i.e. a model that classifies \textit{File} nodes correctly and misclassifies the other node types). 
+	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of the nodes' frequencies. The \textit{Meta} nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the \textit{File} nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a biased classifier (i.e. a model that classifies \textit{File} nodes correctly and misclassifies the other node types). 
 	\begin{figure}[H]
 		\centering
 
@@ -22,7 +22,7 @@
 		}
 		\label{Figure 2.1.1}
 	\end{figure}
-	Relationships between nodes are emphasised by different types of edges. Some edges also illustrate how an object (File, Socket, etc.) evolves over time. This is done using the \textit{GLOB\_OBJ\_PREV} edge and helps us to easily visualize the different versions of an object.
+	Relationships between nodes are emphasised by different types of edges. Some edges also illustrate how an object evolves over time. This is done using the \textit{GLOB\_OBJ\_PREV} edge and helps us to easily visualize the different versions of an object.
 	\begin{figure}[H]
 		\centering
 
@@ -32,7 +32,7 @@
 		}
 		\label{Figure 2.1.2}
 	\end{figure}
-	A number of edges also use a \textit{state} field, in order to provide further information regarding the relationship between two nodes. For example, in the case of a \textit{PROC\_OBJ} edge connecting a File to a Process, the \textit{state} field is used to show whether the Process reads/ writes to the File or if the File is the binary the Process is executed from. \textit{PROC\_OBJ} edges also connect Processes to Sockets. Here, the \textit{state} field can take values such as: \textit{Server} (if the Process uses the Socket to accept new connections), \textit{Client} (if the Process uses to Socket to connect to a different Process that acts as a server - which may or may not be on a different machine)  and \textit{RaW} (if the Process both reads and writes through the Socket).
+	A number of edges also use a \textit{state} field, providing further information regarding the relationship between two nodes. For example, in the case of a \textit{PROC\_OBJ} edge connecting a File to a Process, the \textit{state} field is used to show whether the Process reads/ writes to the File or if the File is the binary the Process is executed from. \textit{PROC\_OBJ} edges also connect Processes to Sockets. Here, the \textit{state} field can take values such as: \textit{Server} (if the Process uses the Socket to accept new connections), \textit{Client} (if the Process uses to Socket to connect to a different Process that acts as a server - which may or may not be on a different machine)  and \textit{RaW} (if the Process both reads and writes through the Socket).
 	\begin{figure}[H]
 		\centering
 		
@@ -68,7 +68,7 @@
 		
 		\item \textbf{Processes that runs suspicious commands: }Here, I define the term of \textit{suspicious command} as being one of the following bash commands:
 		\begin{itemize}
-			\item \textit{sudo} - gives the user running the Process root privilege. An attacker might use this to access OS-sensitive locations (such as /bin or /lib). 
+			\item \textit{sudo} - gives the user running the Process root privilege. An attacker might use this to access OS-sensitive locations. 
 			\item \textit{usermod/ groupmod} - an attacker might make use of these commands to change the running user's privileges and access files that it wouldn't otherwise have access to.
 			\item \textit{chmod} - an attacker might use this command to change the access control to a specific file/ directory in order to make it accessible from external sources.
 			\item \textit{rm -rf} - an ill-intended user might use this command to delete files crucial to the system. 
@@ -78,13 +78,13 @@
 	\end{enumerate}
 	These rules only represent a suitable starting point for the tool implemented here. In practice, though, I would expect my model to be driven by past analyst observations and interactions in the UI. This is a fact I kept in mind when considering various machine learning models, in order to try to create ones that can be updated given analyst input.
 	\\ \\
-	By setting these ground-truths, this project is also exploring whether the various machine learning algorithms implemented as part of this project can easily learn a number of patterns in the same time.
+	By setting these ground truths, this project is also exploring whether the various machine learning algorithms implemented in this project can easily learn a number of patterns at the same time.
 	\subsection{Data preprocessing} \label{Section: prep/data/feature-vectors}
-	The implemented machine learning models only look at 3 of the 6 types of nodes: \textbf{File}, \textbf{Process} and \textbf{Socket} nodes. 
+	The implemented machine learning models only look at 3 of the 6 node types: \textbf{File}, \textbf{Process} and \textbf{Socket} nodes. 
 	\\ \\
 	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. 
 	\\ \\
-	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node with the closest timestamp value to the one of the Process. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it. Out of these 13 features, 3 are categorical (such as the type of node in question), 6 are binary (i.e. taking a True/ False value), 3 are integers (e.g: the version number of the node) and one is real (logarithm of the distance in timestamp to the node's neighbour). Appendix \ref{Appendix: Feature-vector} breaks down these features and explains the reasoning behind them in detail. When using one-hot-encoding for the categorical features, the feature vectors length increases to 23.
+	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node with the closest timestamp value to the one of the Process. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it. Out of these 13 features, 3 are categorical (such as the type of node in question), 6 are binary (i.e. taking a boolean value), 3 are integers (e.g: the version number of the node) and one is real (logarithm of the distance in timestamp to the node's neighbour). Appendix \ref{Appendix: Feature-vector} breaks down these features and explains the reasoning behind them in detail. When using one-hot-encoding for the categorical features, the feature vectors length increases to 23.
 
 	\section{Machine learning models} \label{Section 2.2}
 	This section describes the underlying theory of the machine learning models explored as part of this project and how they can be applied to the data I am working on.
@@ -108,7 +108,7 @@
 		\label{Fig: prep/ml/mlp/mlp}	
 	\end{figure}	
 
-	 Each layer of the MLP consists of a number of neurons(Figure \ref{Fig: prep/ml/mlp/neuron}). For an input vector $\mathbf{x}\in\mathbb{R}^d$, a weight vector $\mathbf{w}\in\mathbb{R}^d$, and a bias $b$, a neuron computes the output $y = \sigma(b + \sum_{i=1}^{d} w_i x_i)$, where $\sigma$ is an \textit{activation function}.
+	 Each layer of the MLP consists of a number of neurons (Figure \ref{Fig: prep/ml/mlp/neuron}). For an input vector $\mathbf{x}\in\mathbb{R}^d$, a weight vector $\mathbf{w}\in\mathbb{R}^d$, and a bias $b$, a neuron computes the output $y = \sigma(b + \sum_{i=1}^{d} w_i x_i)$, where $\sigma$ is an \textit{activation function}.
 	
 	\begin{figure}[H]
 		\centering
@@ -168,12 +168,12 @@
 	In general, neural networks are optimised using gradient-based algorithms. Therefore, activation functions with steeper gradients (such as ReLU and LReLU) tend to make the algorithm to converge faster.
 	
 	\subsubsection*{Using MLPs for classification}
-	In this project, I intend to classify nodes as being in one of two classes: \textit{SHOW} and \textit{HIDE}, based on the feature vectors described in Section \ref{Section: prep/data/feature-vectors}. Therefore, we are interested in seeing how an MLP can be used to solve classification problems. As shown by Cybenko's theorem\cite{sigmoidal}, MLPs are universal function approximators, so that they can be used to create mathematical models by regression analysis. Considering the fact that classification is a particular case of regression where the response variable is categorical, we can infer that MLPs make good classifier algorithms. 
+	In this project, I intend to classify nodes as being in one of two classes: \textit{SHOW} and \textit{HIDE}, based on the feature vectors described in Section \ref{Section: prep/data/feature-vectors}. Therefore, we are interested in seeing how an MLP can be used to solve classification problems. As shown by Cybenko's theorem\cite{sigmoidal}, MLPs are universal function approximators, so they can be used to create mathematical models by regression analysis. Considering the fact that classification is a particular case of regression where the response variable is categorical, we can infer that MLPs make good classifier algorithms. 
 	\\ \\
 	Suppose the MLP has to learn to classify a feature vector $\mathbf{x} \in \mathbb{R}^d$ into a class $C_t$ from $\mathcal{C} = \{C_1\dots C_k\}$. In this case, we want the $t^{th}$ output neuron (i.e. $o_t$) to indicate this. A popular choice for this task is the \textbf{softmax} function, which transforms any k-dimensional vector $\mathbf{o}$ to a probability distribution:
 	\begin{equation}
 		\centering
-		\text{softmax}_i(\mathbf{o})_i = \frac{e^{o_i}}{\sum_{j=1}^{k}e^{o_j}}
+		\text{softmax}_i(\mathbf{o}) = \frac{e^{o_i}}{\sum_{j=1}^{k}e^{o_j}}
 	\end{equation}
 	where: $\mathbf{o}^T = [o_1\dots o_k]$ is the vector of the output neurons. Thus, the probability of the input vector $\mathbf{x}$ being in class $C_t$ is given by:
 	\begin{equation}
@@ -203,9 +203,9 @@
 	Using a training sequence $\mathbf{s}$, the parameters of the MLP have to be optimised in order to be able to have a performant classifier. One of the most frequently used optimisation techniques is \textbf{gradient descent}, which updates the parameters iteratively, by moving in the direction of the gradient of a loss function. In a complex system, the gradient is calculated using \textbf{backpropagation}. This algorithm is described in detail in Appendix \ref{appendix-MLP-opt}. 
 	
 	\subsection{Convolutional Neural Networks} 
-	Classically, Convolutional Neural Networks(CNNs) are used in tasks such as computer vision or natural language processing. One-dimensional CNNs, though, have proven to be effective for non-spatial data, as well, by identifying relationships between the input features. For this reason, I considered this as a potential model in my project. 
+	Classically, Convolutional Neural Networks(CNNs) are used in computer vision or natural language processing. One-dimensional CNNs, though, have proven effective for non-spatial data, as well, by identifying relationships between the input features. For this reason, I considered this as a potential model in my project. 
 	\\ \\
-	CNN make use of \textbf{convolutional layers} in order to identify relations between features in a subarea of the feature vector. 	Following these convolutional layer(s), a CNN normally has a one or more fully connected layers that process the outputs and return either a probability distribution (for classification) or a single value (in the case of regression).  
+	CNNs use \textbf{convolutional layers} to identify relations between features in a subarea of the feature vector. Following these convolutional layer(s), a CNN normally has a one or more fully connected layers that process the outputs and return a probability distribution over the desired classes.  
 	
 	\subsubsection*{Convolutional layer}
 	The main purpose of the convolutional layer is to extract relationships between the features from an input vector. It uses a fix-sized kernel $\mathbf{w} \in \mathbb{R}^k$, that slides over the input vector $\mathbf{x}\in\mathbb{R}^d$ and computes a linear transformation for every patch of size $k$. The output of the convolutional layer is a new vector $\mathbf{y}\in\mathbb{R}^n$, where $n=d - k + 1$. The values of each element in the output vector is given by the equation:
@@ -236,12 +236,12 @@
 		\begin{subfigure}[b]{0.3\linewidth}
 			\includegraphics[width=\linewidth]{graphics/nns/conv/6}
 		\end{subfigure}
-		\caption[1D Convolution]{Step-by-step example of 1D convolution with a $1\times3$ kernel}
+		\caption[1D Convolution]{Example of 1D convolution with a $1\times3$ kernel}
 		\label{Fig: prep/ml/cnn/convoLayer}
 	\end{figure}
-	In order to add further nonlinearity and prevent the overfitting of the model, one may also use an activation function when computing the final outputs of the layer. 
+	In order to add further nonlinearity and prevent overfitting the model, one may also use an activation function when computing the final outputs of the layer. 
 	\\ \\
-	\textbf{Dilated convolution}(Figure \ref{Fig: prep/ml/cnn/dilated}) is a technique that increases the receptive (global) view of the network exponentially and has proven extremely effective in tasks such as context and text-to-speech resolution. In this case, the filter (kernel) is applied over a larger area than its length by skipping input values with a certain step, called \textit{dilation field}. Exponentially increasing the dilation rate results in an exponential field growth in depth\cite{DBLP:journals/corr/YuK15}.  
+	\textbf{Dilated convolution} (Figure \ref{Fig: prep/ml/cnn/dilated}) is a technique that increases the receptive (global) view of the network exponentially and has proven extremely effective in context and text-to-speech resolution. In this case, the filter (kernel) is applied over a larger area than its length by skipping input values with a certain step, called \textit{dilation field}. Exponentially increasing the dilation rate results in an exponential field growth in depth\cite{DBLP:journals/corr/YuK15}.  
 	\\ \\
 	Recent work has shown that dilated convolution is a simple but effective idea, facilitating the detection of fine-grained details by processing inputs in higher resolutions. For this reason, I have considered applying this approach to the problem at hand.
 	
@@ -253,10 +253,9 @@
 	\end{figure}
 	
 	\subsection{Non-parametric techniques}	\label{Section 2.2.5}
-	So far, I discussed various parametric machine learning techniques I considered appropriate for the problem I am trying to solve. These models, though, treat supervised learning under the assumption that the forms of the underlying density functions were known, even though they rarely fit the densities actually encountered in practice. 
+	So far, I discussed various parametric machine learning techniques I considered appropriate for the problem at hand. These models, though, assume that the forms of the underlying density functions were known, even though they rarely fit the densities encountered in practice. 
 	\\ \\
-	In this section, I examine how the probability density functions of the two classes (i.e. \textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). The PNNs are based on the mathematical notion of \textbf{Parzen windows}, a technique of estimating the probability density functions for a set of classes, given a number of examples from each class. Appendix \ref{Appendix: Parzen/math-background} shows the mathematical background behind this theoretical concept.
-	
+	In this section, I examine how the probability density functions of the two classes (\textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). PNNs are based on the mathematical notion of \textbf{Parzen windows}, a technique of estimating the probability density functions for a set of classes, given a number of examples from each class. Appendix \ref{Appendix: Parzen/math-background} discusses the mathematical background behind this theoretical concept.
 	
 	\subsubsection{Probabilistic Neural Networks}
  	Probabilistic Neural Networks (PNNs) are non-parametric classifiers that try to assign a class to an input pattern based on the pre-estimated probability density function of each class. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class in $\mathcal{C}$. 
@@ -270,43 +269,43 @@
 	 
 	 Figure \ref{Fig 2.8} shows a PNN architecture that can be used for classification. It consists of $n$ input units, $m$ pattern units and $k$ output units. Each pattern unit forms the inner product of its weight vector $\mathbf{w}$ and the normalized pattern vector $\mathbf{x}$ and outputs $\exp(\frac{\mathbf{w}^T\mathbf{x} - 1}{\sigma^2})$. Each category unit sums up the outputs of the pattern units connected to it. This insures that the activity in each of the category units represents the Parzen-window density estimate using a circular symmetric Gaussian window of covariance $\sigma^2\mathbf{I}$, where $\mathbf{I}$ is the $n\times n$ identity matrix. $\sigma$ is a parameter set by the user and is equal to $\sqrt{2}$ times the width of the effective Gaussian window
      \\ \\ 
-	 The weights of the $p^\text{th}$ pattern unit are set as $\mathbf{w}_p = \mathbf{x}_p$, $\forall p \in \{ 1,2,\dots ,m \}$, where $\mathbf{x}_p$ is the normalised $p^\text{th}$ pattern from the training set. In order to classify the a new normalized pattern $\mathbf{x}$ we first have to propagate the it through the network. Then, the resulting class will be $C_t$, where:
+	 The weights of the $p^\text{th}$ pattern unit are set as $\mathbf{w}_p = \mathbf{x}_p$, $\forall p \in \{ 1,2,\dots ,m \}$, where $\mathbf{x}_p$ is the normalised $p^\text{th}$ pattern from the training set. In order to classify a new normalized pattern $\mathbf{x}$ we first have to propagate the it through the network. Then, the resulting class will be $C_t$, where:
 	 \begin{equation}
 		 t = \argmax_i c_i(\mathbf{x}). \forall i \in \{1,\dots k\}
 	 \end{equation}
 	 and $c_i(\mathbf{x})$ is the output of the $i^\text{th}$ category unit.
 	\section{API architecture} \label{Section 2.3}
-	Once I decided how to pre-process the raw graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS user interface and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow independent evolution of both parties without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
+	Once I decided how to pre-process the graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS UI and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow each to evolve independently without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
 	\\ \\
-	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and are do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the different layers involved in a REST APIs' architecture make them highly modular and scalable. 
+	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the layered architecture of REST APIs makes them highly modular and scalable. 
 	\\ \\
-	Being stateless, a REST API might increase the per-request overhead significantly by having to handle many incoming requests. Therefore, it is essential that it is designed to encourage the caching of intermediate results.
+	Being stateless, a REST API might increase the per-request overhead significantly by having to handle many incoming requests. Therefore, it is essential to encourage the caching of intermediate results.
 	
 	\section{Requirements analysis} \label{Section 2.4}
-	Having reviewed the structure of the raw graph data, the background theory of the machine learning models and the structure that will facilitate interaction with the CADETS user interface, the requirements of the project overall were closely examined. The end goal of this project is to have an independent and modular tool that is able to connect to the CADETS UI and efficiently classify the nodes from a given graph. A breakdown of the project requirements can be visualized in Table \ref{Table 2.2}.
+	Having reviewed the structure of the graph data, the background theory of the machine learning models and the structure that will facilitate interaction with the CADETS UI, the requirements of the project were closely examined. The end goal of this project is to have an independent and modular tool that is able to connect to the CADETS UI and efficiently classify the nodes from a given graph. A breakdown of the project requirements can be visualized in Table \ref{Table 2.2}.
 	\begin{longtable}{|p{.51\textwidth}|p{.13\textwidth} p{.13\textwidth} p{.13\textwidth}|}
 		\textbf{Requirements} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty} \\
 		\hline
-		Implementation of baseline model & High & Low & Low \\
-		MLP Implementation & High & Medium & Medium \\
-		Implementation of CNN & Medium & High & High \\
-		PNN Implementation & Medium & Medium & High \\
-		Implementation of the server infrastructure & High & Medium & Medium \\
-		Server-side caching implementation for previous results & High & Low & Low \\
-		Comparative evaluation of the implemented machine learning models & High & Medium & High \\
+		Implementat baseline model & High & Low & Low \\
+		Implement MLP & High & Medium & Medium \\
+		Implement CNN & Medium & High & High \\
+		Implement PNN & Medium & Medium & High \\
+		Implement server infrastructure & High & Medium & Medium \\
+		Implement Server-side caching for previous results & High & Low & Low \\
+		Comparatively evaluate the implemented machine learning models & High & Medium & High \\
 		\hline
-		\caption[Requirements overview]{\centering Overview of the high-level requirements, their priorities, risks and difficulties.}
+		\caption[Requirements overview]{\centering Project requirements, their priorities, risks and difficulties.}
 		\label{Table 2.2}
 	\end{longtable}
 	\section{Choice of tools} \label{Section 2.5}
-	This section describes the tools choices that I made in order to meet the requirements described in Section \ref{Section 2.4}. 
+	This section describes the tools choices that I made in order to meet the requirements described previously. 
 	\subsection{Programming languages} \label{Section 2.5.1}
 	Early in the planning stage I decided to use Python 3.6.4\footnote{\textbf{\url{https://www.python.org/downloads/release/python-364/}}} as the main programming language. It is extremely popular in both research and industry deep learning communities, providing a large variety of libraries that can be utilised to this end. 
 	\\ \\
-	Besides Python, I also used the Cypher Data Manipulation Language (DML) in order to interact to the original graph data stored in Neo4J.  
+	Besides Python, I used the Cypher Data Manipulation Language (DML) in order to interact with the original graph data stored in Neo4J.  
 	
 	\subsection{Libraries} \label{Section 2.5.2}
-	Apart from the Python built-in libraries, I also used the third-party libraries listed in Table \ref{Table 2.3}. 
+	Apart from the Python built-in libraries, I used the third-party libraries listed in Table \ref{Table 2.3}. 
 	\begin{longtable}{|p{.15\textwidth} p{.10\textwidth} p{.4\textwidth} p{.25\textwidth}|}
 		\textbf{Library} & \textbf{Version} & \textbf{Purpose} & \textbf{Licence}\\
 		\hline
@@ -319,19 +318,19 @@
 		neo4j-driver & 1.5.3 & Querying the Neo4J database. & Apache 2.0 Licence\\
 		psycopg2 & 2.7.4 & Handling the server-side caching of classification results. &  GNU Lesser General Public License\\
 		\hline
-		\caption[Libaries table]{\centering Table showing the third-party libraries used  as part of this project}
+		\caption[Libaries table]{\centering Third-party libraries used as part of this project}
 		\label{Table 2.3}
 	\end{longtable} 
-	The library of key importance to the project is \textbf{Keras}, a high-level neural networks API using Tensorflow\footnote{\textbf{\url{https://www.tensorflow.org/}}} as backend. It is a modular and easily extensible library that fits the iterative software development methodology adopted in this project.
+	The library of key importance here is \textbf{Keras}, a high-level neural networks API using Tensorflow\footnote{\textbf{\url{https://www.tensorflow.org/}}} as backend. It is a modular and easily extensible library that fits the iterative software development methodology adopted in this project.
 	\subsection{Development and testing environment}
-	Development work was entirely done on my personal machine -- a 15" Macbook Pro, running MacOS High Sierra (version 10.13.2). The IDE I chose for this project was \textbf{PyCharm}\footnote{\textbf{\url{https://www.jetbrains.com/pycharm/}}}, due to its high flexibility and support for version control and testing.
+	Development work was entirely done on my personal machine -- a 15" Macbook Pro, running MacOS High Sierra. The IDE I chose for this project was \textbf{PyCharm}\footnote{\textbf{\url{https://www.jetbrains.com/pycharm/}}}, due to its high flexibility and support for version control and testing.
 	\\ \\
-	For a project at this scale, version control is crucial. In order to organize my codebase accordingly, I used the \textbf{git} version control environment and synchronized it remotely with the free online hosting service \textit{GitHub}\footnote{\textbf{\url{https://github.com}}}. GitHub was also used as the main backup strategy for this project.
+	For a project at this scale, version control is crucial. In order to organize my codebase accordingly, I used the \textbf{git} version control environment and synchronized it remotely with the online hosting service \textit{GitHub}\footnote{\textbf{\url{https://github.com}}}. GitHub was also used as the main backup strategy for this project.
 	\\ \\
 	A separate GitHub repository was used to maintain the \LaTeX \space code for this dissertation. 
 	
 	\section{Starting point} \label{Section 2.6}
-	At the start of this project, I had intermediate knowledge of Python, having used it in the Part 1B group project and a number of other small personal projects. However, having had no previous experience with Keras, I had to become acquainted with the API and to learn how to use it to configure neural networks.   
+	At the start of this project, I had intermediate knowledge of Python, having used it in the Part IB group project and a number of small personal projects. However, having had no previous experience with Keras, I had to become acquainted with the API and to learn how it can be used to implement my models.   
 	\\ \\
 	In terms of theoretical background, the Artificial Intelligence I course provided sufficient initial knowledge to understand the high-level behaviour of MLPs. Additional research was required to understand the CNNs and non-parametric techniques implemented.
 	
@@ -344,7 +343,7 @@
 	\end{enumerate}
 
 	\section{Summary} \label{Section 2.8}
-	In this chapter I discussed the data the machine learning models work on and how it is preprocessed, the background theory that had to be understood and the software engineering decision that were made before the work could begin. I have presented a condensed theory of the models that were implemented as part of this project and how they will interact with the external sources (i.e. the Neo4J database and the CADETS UI).
+	In this chapter I discussed the graph data I am working with and how it is preprocessed, the background theory for the various models and the software engineering decisions that were made before the work could begin. I have also presented how the machine learning models will interact with the external sources (i.e. the Neo4J database and the CADETS UI).
 	\\ \\
 	The next chapter will provide a detailed breakdown of the implementation, showing how the aims described here were accomplished. 
 	

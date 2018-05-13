@@ -1,5 +1,6 @@
-\chapter{Mathematical background behind Parzen windows} \label{Appendix: Parzen/math-background}
+\chapter{Mathematical background behind Probabilist Neural Networks} \label{Appendix: Parzen/math-background}
 
+\section{Parzen windows}
 This appendix breaks down the mathematical background behind Parzen windows, the theoretical model behind Probabilistic Neural Networks. 
 \\ \\
 Firstly, they rely on the fact that the probability $P$ that a real vector $\mathbf{x}$ falls in a region $\mathfrak{R}$ is given by:
@@ -46,3 +47,53 @@ p_n(\mathbf{x}) = \frac{1}{n} \sum_{i=1}^{n} \frac{1}{V_n} \varphi \bigg( \frac{
 \label{Eq-np 3}
 \end{equation} 
 In the general case, we want to allow more general window functions rather than limiting ourselves to a hypercube unit function. In such a case, the equation \ref{Eq-np 3} expresses our estimate of $p(\mathbf{x})$ as an average of functions of $\mathbf{x}$ and the samples $\mathbf{x}_i$. In essence, the window function is being used for \textit{interpolation} - each sample contributing to the estimate in accordance to the distance from $\mathbf{x}$.
+
+\section{Choice of the parameter used in classification} \label{Section: appendix/pnn/parameter}
+
+In the Implementation Chapter, I stated that Each pattern unit then computes the inner product:
+\begin{equation}
+z_k = \mathbf{w}_k^T \mathbf{x}
+\label{Eq: appendix/pnn/innerprod}
+\end{equation}   
+and emits $\exp(\frac{z_k-1}{\lambda^2})$, where $\lambda$ is a parameter set to be $\sqrt{2}$ times the width of the effective Gaussian window. 
+\\ \\
+In this section I will outline the reasoning behind this choice of the parameter $\lambda$. Firstly, I consider an (unnormalized) Gaussian window centred on the position of the training patterns $\mathbf{w}_k$. If we let the effective width $h_n$ to be a constant, the window function would be:
+\begin{equation}
+\begin{split}
+\varphi\bigg(\frac{\mathbf{x}_k - \mathbf{w}_k}{h_n}\bigg) & \propto \exp\bigg(\frac{
+	-(\mathbf{x}-\mathbf{w}_k)^T(\mathbf{x}-\mathbf{w}_k)
+}{
+	2\sigma^2
+}\bigg) \\
+& = \exp\bigg(
+-
+\frac{
+	\mathbf{x}^T\mathbf{x} + \mathbf{w}_k^T\mathbf{w_k} - 2\mathbf{x}^T\mathbf{w}_k 	
+}{
+	2\sigma^2
+}
+\bigg)
+\end{split}
+\end{equation}
+In the training phase, I ensured that all weights $\mathbf{w}_k$ are normalized (i.e. $\mathbf{w}_k^T\mathbf{w}_k = 1, \forall k \in \{1,\dots,n\}$). Moreover, the pattern we want to classify, $\mathbf{x}$, was normalized before being applied to the input units. Also, $z_k = \mathbf{w}_k^T\mathbf{x} = \mathbf{x}^T\mathbf{w}_k$. Therefore, the window function can be rewritten as: 
+\begin{equation}
+\begin{split}
+\varphi\bigg(\frac{\mathbf{x}_k - \mathbf{w}_k}{h_n}\bigg) & \propto
+\exp\bigg(
+-
+\frac{
+	1 + 1 - 2z_k
+}{
+	2\sigma^2
+}
+\bigg) \\
+& = \exp \bigg(
+\frac{
+	z_k - 1
+}{
+	2\sigma^2
+}
+\bigg)
+\end{split}
+\end{equation}
+which is the nonlinearity we will apply. 
