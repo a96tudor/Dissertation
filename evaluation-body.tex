@@ -7,19 +7,19 @@
 			\hline
 			& \textbf{Description} & \textbf{Status} & \textbf{Relevant section(s)} \\
 			\hline
-			\textit{Criterion 1} & Successfully implement a classification algorithm & \textbf{Successful} & Detailed in the Implementation Chapter - Section \ref{Section: impl/ml} \\
+			\textit{Criterion 1} & Successfully implement a classification algorithm & \textbf{Successful} & Implementation, Section \ref{Section: impl/ml} \\
 			\hline
-			\textit{Criterion 2} & Evaluate the model and achieve $70\%$ in both precision and recall & \textbf{Successful} & Detailed results illustrated in the Evaluation Chapter - Section \ref{Section: eval/ml} \\
+			\textit{Criterion 2} & Evaluate the model and achieve $70\%$ in both precision and recall & \textbf{Successful} & Evaluation, Section \ref{Section: eval/ml} \\
 			\hhline{====}
 			\multicolumn{4}{|c|}{\textbf{Extensions}} \\
 			\hhline{====}
-			\textit{Extension 1} & Implement and evaluate 3 other machine learning models, on top of the baseline classification algorithm & \textbf{Successful} & The implementation of these models is described in the Implementation Chapter - Section \ref{Section: impl/ml}. Their evaluation and results are detailed in the Evaluation Chapter - Section \ref{Section: eval/ml}.\\
+			\textit{Extension 1} & Implement and evaluate 3 other machine learning models, on top of the baseline classification algorithm & \textbf{Successful} & Implementation, Section \ref{Section: impl/ml}. Evaluation, Section \ref{Section: eval/ml}.\\
 			\hline
-			\textit{Extension 2} & Comparatively evaluate the models and their relevance to the problem at hand & \textbf{Successful} & Detailed in the Evaluation Chapter - Section \ref{Section: eval/ml} \\
+			\textit{Extension 2} & Comparatively evaluate the models and their relevance to the problem at hand & \textbf{Successful} & Evaluation, Section \ref{Section: eval/ml} \\
 			\hline
-			\textit{Extension 3} & Implement an automated feature extractor for the machine learning models & \textbf{Successful} & Detailed in the Implementation Chapter - Section \ref{Section: impl/neo4j} \\
+			\textit{Extension 3} & Implement an automated feature extractor for the machine learning models & \textbf{Successful} & Implementation, Section \ref{Section: impl/neo4j} \\
 			\hline
-			\textit{Extension 4} & Embed the machine learning models into an API that can be used by the CADETS UI & \textbf{Successful} & Detailed in the Implementation Chapter - Sections \ref{Section: impl/overview} and \ref{Section: impl/REST}. \\
+			\textit{Extension 4} & Embed the machine learning models into an API that can be used by the CADETS UI & \textbf{Successful} & Implementation, Sections \ref{Section: impl/overview} and \ref{Section: impl/REST}. \\
 			\hline
 			\caption{Status of success criteria and extensions.}
 			\label{Table: eval/success/status}
@@ -29,7 +29,7 @@
 		In this section, I will describe how the machine learning models were evaluated, show the results for the various metrics computed and discuss them, as well as their relevance to the problem I am trying to solve.
 		
 	\subsection{Evaluation methodology} \label{Section: eval/ml/methodology}
-		In order to quantitatively evaluate the performance of the machine learning models implemented, I used a labelled dataset $\mathbf{s}$ containing $5,498$ nodes. Figure \ref{Fig: eval/ml/methodology/dist} shows how the labels and node types are distributed in the dataset used in this case. From there, we can observe that the node type distribution resembles the distribution that can be found in the general case in a provenance graph. Therefore, by evaluating the models on this dataset I can produce a comprehensive and accurate assessment of their performance. 
+		In order to quantitatively evaluate the performance of the machine learning models implemented, I used a labelled dataset $\mathbf{s}$ containing $5,498$ nodes. Figure \ref{Fig: eval/ml/methodology/dist} shows how the labels and node types are distributed in the dataset used in this case. From there, we can observe that the node type distribution resembles the distribution that can be generally encountered in a provenance graph. Therefore, by evaluating the models on this dataset I can produce a comprehensive and accurate assessment of their performance. 
 		\begin{figure}[H]
 			\centering
 			\begin{subfigure}{.4\textwidth}
@@ -42,7 +42,7 @@
 			\caption[Distributions of labels and node type in the dataset]{\textit{Left:} Distribution of the labels in the dataset. \textit{Right: }Distribution of the node types in the dataset.}
 			\label{Fig: eval/ml/methodology/dist}
 		\end{figure} 
-		The technique used when evaluating the models was \textbf{10-fold outer Cross Validation}. Essentially, I split the dataset in $10$ equally-sized slots and use one at a time as a test set, while the other $9$ serve as the training set for the model. Figure \ref{Fig: impl/ml/methodology/kfold/first} shows how the dataset is divided in the first iteration of the cross-validation algorithm. This way, I ensure that none of the models is not tested on previously-seen examples and therefore I correctly evaluate how well they generalize on the given data.
+		The technique used when evaluating the models was \textbf{10-fold outer Cross Validation}. Essentially, I split the dataset in $10$ equally-sized slots and use one at a time as a test set, while the other $9$ serve as the training set for the model. Figure \ref{Fig: impl/ml/methodology/kfold/first} shows how the dataset is divided in the first iteration of the cross-validation algorithm. This way, I ensure that none of the models is tested on previously-seen examples and therefore I correctly evaluate how well they generalize on the given data.
 		\begin{figure}[H]
 			\centering
 			\includegraphics[width=.8\textwidth]{graphics/k-fold}
@@ -50,10 +50,10 @@
 			\label{Fig: impl/ml/methodology/kfold/first}
 		\end{figure}
 		
-		At every iteration, I compute a set of metrics that for estimating the model's performance and the final result for every metric in part is given by averaging over the values obtained. 
+		At every iteration, I compute a set of metrics for estimating the model's performance. The final result for every metric is given by averaging over the values obtained. 
 	\subsection{Metrics involved} \label{Section: eval/ml/metrics}
 	
-		In this section, I will outline the metrics used when evaluating the machine learning models. The choice of good metrics is essential when comparatively evaluating a number of machine learning models. The simplest metric for evaluating of classification algorithms is \textbf{accuracy}, and can be computed using the formula: 
+		In this section, I will outline the metrics used when evaluating the machine learning models. The choice of good metrics is essential when comparatively evaluating a number of machine learning models. The simplest metric for evaluating classification algorithms is \textbf{accuracy}, and can be computed using the formula: 
 		\\
 		\begin{equation}
 			acc = \frac{\text{no. of correctly predicted nodes}}{\text{total no. of predicted nodes}}
@@ -66,7 +66,7 @@
 			\caption{Confusion matrix for two-class classification}
 			\label{Fig: eval/ml/metrics/confusion-matrix}
 		\end{figure}
-		The metrics I used to evaluate the general performance of the models are presented in Table \ref{Table: eval/ml/metrics/metrics}. From those, the F1 score and the MCC are the most meaningful for this case, as they ignore the fact that the data is not balanced. The MCC gives a value between $[-1, 1]$, where $1$ represents perfect prediction, $0$ not better than random and $-1$ a total disagreement between the predicted and true labels.
+		The metrics I used to evaluate the general performance of the models are presented in Table \ref{Table: eval/ml/metrics/metrics}. From those, the F3 score and the MCC are the most meaningful for this case, as they ignore the fact that the data is not balanced. The MCC gives a value between $[-1, 1]$, where $1$ represents perfect prediction, $0$ not better than random and $-1$ a total disagreement between the predicted and true labels.
 		\begin{longtable}{|p{.15\textwidth}|p{.40\textwidth}|c|}
 		   \textbf{Metric} & \textbf{Intuition} &\textbf{Formula} \\
 			\hline
@@ -104,9 +104,9 @@
 			\caption{Evaluation results for the models implemented.}
 			\label{Table: eval/models/results/overall}
 		\end{longtable}
-		By analysing the results above, I can conclude that the Convolutional Neural Network is significantly more performant than the others, with an MCC score of $\mathbf{87.59 \pm 1.30 \%}$. Moreover, it high values for both recall (and therefore it is very likely to return all the relevant nodes)  and precision (making it an effective filtering algorithm). The PNN has an even higher recall value, classifying more of the relevant results as \textit{SHOW}. Its low precision, however, makes it a poor filtering tool, as the analyst would have to search through a larger node space.
+		By analysing the results above, I can conclude that the Convolutional Neural Network is significantly more performant than the others, with an MCC score of $\mathbf{87.59 \pm 1.30 \%}$. Moreover, it has high values for both recall (being very likely to return all the relevant nodes) and precision (making it an effective filtering algorithm). The PNN has an even higher recall value, classifying more of the relevant results as \textit{SHOW}. Its low precision, however, makes it a poor filtering tool, as the analyst would have to search through a larger node space.
 		\\ \\
-		The bar graph in Figure \ref{Fig: eval/ml/results/MCC-per-fold} illustrates a fold-by-fold breakdown of the MCC results for all 4 models. It supports the previous conclusion (i.e. that the CNN is the most performant model), as it has a higher MCC model than the other models for $8/10$ folds and therefore it generalizes better than them.    
+		The bar graph in Figure \ref{Fig: eval/ml/results/MCC-per-fold} illustrates a fold-by-fold breakdown of the MCC results for all 4 models. It supports the previous conclusion, as the CNN has a higher MCC than the other models for $8/10$ folds and therefore it generalizes better than them.    
 		\begin{figure}[H]
 			\centering
 			\includegraphics[width=\textwidth]{graphics/MCC-per-fold}
@@ -159,7 +159,7 @@
 			In conclusion, all four models have a reasonable performance on the data used during evaluation, meeting the success criterion outlined in the Project Proposal (i.e. achieving over $70\%$ in both precision and recall). As expected, the Convolutional Neural Network is the most performant of the models, with an MCC = $87.59 \pm 1.30 \%$ and F3 = $92.06 \pm 1.31 \%$, despite the highly imbalanced data.
 			
 		\section{Service time evaluation} \label{Section: eval/service-time}
-			This project is meant to be a complete API that can be used in practice by the CADETS user interface. Therefore, besides the performance of the machine learning model used, it is essential to evaluate it in terms of the service speed as well. All the timing results were obtained using my personal machine. For a job processing $N$ nodes, the service time is calculated using the following formula:  
+			This project is meant to be a complete API that can be used in practice by the CADETS user interface. Therefore, besides the performance of the machine learning model used, it is essential to evaluate it in terms of the service speed as well\footnote{All the timing results were obtained using my personal machine.}. For a job processing $N$ nodes, the service time is calculated using the following formula:  
 			\begin{equation}
 				\text{service\_time} = N\times [CCT + CHR \times CET + (1-CHR) \times (CT + RCT)] + MLT
 				\label{Eq: eval/service-time/overall}
@@ -168,14 +168,14 @@
 			\begin{itemize}
 				\item $\mathbf{CCT} \in \mathbb{R}$ = Cache Check Time - time taking to check if a node is in the cache database and if the entry is still valid.
 				\item $\mathbf{CHR} \in [0, 1]$ = Cache Hit Rate.
-				\item $\textbf{CET} \in \mathbb{R}$ = Cache Extraction Time - time taking to extracted one cached result.
-				\item $\textbf{CT} \in \mathbb{R}$ = Classification Time - time taking to classify a node. 
+				\item $\textbf{CET} \in \mathbb{R}$ = Cache Extraction Time - time for extracting a cached result.
+				\item $\textbf{CT} \in \mathbb{R}$ = Classification Time - time required to classify a node. 
 				\item $\textbf{RCT} \in \mathbb{R}$ = Result Caching Time - time required to add a new classification result to the cache database.
 				\item $\mathbf{MLT} \in \mathbb{R}$ = Model Loading Time - time required to configure the model (i.e. defining its components and load the corresponding pre-optimised parameters)
 			\end{itemize}
-			In practice, the API is expected to re-use many of the classification results. For this reason, I assume the the cache to have a hit-rate $CHR = 90\%$. For simulation purposes, the database was populated with $10, 000$ nodes and $30$ completed jobs, each having processed $1, 000$ nodes. 
+			In practice, the API is expected to re-use many of the classification results. For this reason, I assume the cache to have a hit-rate $CHR = 90\%$. For simulation purposes, the database was populated with $10, 000$ nodes and $30$ completed jobs, each having processed $1, 000$ nodes. 
 			\\ \\
-			The first step performed by the application when the new job is initiated is to check the cache and try to get the nodes that are cached. In this given simulation environment, the Cache Check Time, Cache Extraction Time and Result Caching Time are $CCT=0.01s$, $CET=0.02s$ and $RCT=0.01s$, respectively.  
+			The first step performed by the application when the new job is initiated is to check the cache and extract the nodes that have a valid cache entry. In this given simulation environment, the Cache Check Time, Cache Extraction Time and Result Caching Time are $CCT=0.01s$, $CET=0.02s$ and $RCT=0.01s$, respectively.  
 			
 		\subsection{Classification timings} \label{Section: eval/service-time/classification}
 			The classification time is not as straight-forward as the times shown so far. It was computed using the following formula:
@@ -188,7 +188,7 @@
 				\item $\mathbf{FET} \in \mathbb{R}$ = Feature Extraction Time - time required to extract the features required for a node.
 				\item $\mathbf{MRT} \in \mathbb{R}$ = Model Running Time - time required for the model to produce a classification result for a node.
 			\end{itemize}
-			If a node is not in the cache, we first need to get the node type. The feature extraction time is dependent on this, as different node types require a slightly different feature extraction algorithm. Moreover, for a \textit{Meta} or \textit{Pipe} node, we also need to look for the closest \textit{Process} node to them. Table \ref{Table: eval/service-time/classification/fet} shows a breakdown of these timings\footnote{The time values were estimated by averaging over 100 runs of the feature extractor, with 20 nodes each.}, when the nodes are extracted from a database of $6,008$ nodes and taking into account the policy defined in Section \ref{Section: impl/REST/actual} from the Implementation chapter.
+			If a node is not in the cache, we first need to get the node type. The feature extraction time is dependent on this, as different node types require a slightly different feature extraction algorithm. Moreover, for a \textit{Pipe} node, we also need to look for the closest \textit{Process} node to it. Table \ref{Table: eval/service-time/classification/fet} shows a breakdown of these timings\footnote{The time values were estimated by averaging over 100 runs of the feature extractor, with 20 nodes each.}, when the nodes are extracted from a database of $6,008$ nodes and taking into account the policy defined in Section \ref{Section: impl/REST/actual} from the Implementation chapter.
 			\begin{longtable}{|p{.1\textwidth} || p{.15\textwidth} | p{.20\textwidth}| p{.15\textwidth}| p{.20\textwidth} | }
 				\textbf{Node type} & \textbf{NTT} (s) & \textbf{Time for finding the closest node} (s)& \textbf{FET} (s)& \textbf{Total FET} (s)\\
 				\hline
@@ -209,7 +209,7 @@
 			\begin{equation}
 				CT(nt, mt) = Total\_FET(nt) + MRT(mt)
 			\end{equation}
-			By using the node type distribution outlined in the histogram from Figure \ref{Figure 2.1.1}, one can compute the average feature extraction time as follows:
+			Considering the node type distribution outlined in the histogram from Figure \ref{Figure 2.1.1}, the average feature extraction time can be calculated as follows:
 			\begin{equation}
 				\hat{FET} = \sum_{nt\in \mathbf{\mathcal{N}}} (\mathbb{P}(nt) \times Total\_FET(nt))
 			\end{equation} 
@@ -250,9 +250,9 @@
 				\label{Table: eval/service-time/together/overall}
 			\end{longtable}
 			
-			From the table above we can observe that there is little difference between the models when it comes to the overall running time of the API. When using the PNN as the classifier, the API takes the most time to run. This is a consequence of the fact that the number of vector operations that need to be performed by it is directly proportional to the number of training samples provided, unlike the other models, which all have a finite number of neurons. 
+			From the table above we can observe that there is little difference between the models when it comes to the overall running time of the API. When using the PNN as the classifier, the API takes the most time to run. This is a consequence of the fact that the number of vector operations that need to be performed by it is directly proportional to the number of training samples provided, unlike the other models, which all have a constant number of neurons. 
 			\\ \\
-			Another key observation is the fact that, in all cases, the classification time $\hat{CT}$ is considerably higher than all the other timings. To be more precise, the feature extraction step is the most impactful in this case. This is given by the poor performance of the $3^{rd}$ party library that supports the connection to the Neo4J database and represents a significant bottleneck for the performance of the model implemented. In order to overcome this issue, I decided to use a cache database for the API, by relying on the fact that the classification  results are unlikely to change over time. In order to better illustrate the impact of the caching mechanism, I will first define the service time formula for a non-caching API as follows:
+			Another key observation is the fact that, in all cases, the classification time $\hat{CT}$ is considerably higher than all the other timings. To be more precise, the feature extraction step is the most impactful in this case. This is given by the poor performance of the $3^{rd}$ party library that supports the connection to the Neo4J database and represents a significant bottleneck for the performance of the model implemented. In order to overcome this issue, I decided to use a cache database for the API, by relying on the fact that the classification  results are unlikely to change over time. In order to better illustrate the impact of the caching mechanism, I first define the service time formula for a non-caching API as follows:
 			\begin{equation}
 				service\_time = N \times \hat{CT} + MLT
 			\end{equation}
@@ -260,7 +260,7 @@
 			\begin{figure}[H]
 				\centering
 				\includegraphics[width=.7\textwidth]{graphics/service-time-hist}
-				\caption{Bar chart of the service times with/ without using cache for $1,000$ nodes. For the cached version, I considered $CHR=0.90$}
+				\caption{Bar chart of the service times with/ without using cache for $1,000$ nodes and $CHR=0.90$.}
 				\label{Fig: eval/service-time/bringing/bar}
 			\end{figure}
 			However, even though the cache database partially solves the feature extractor limitation, the service time of the API is still high. For this reason, I decided to implement the 2-step format of the REST API described in Section \ref{Section: impl/REST/actual}.
