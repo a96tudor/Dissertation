@@ -1,0 +1,66 @@
+\documentclass[12pt,letterpaper]{standalone}
+\usepackage{pgf, tikz}
+\usetikzlibrary{arrows, automata}
+\usepackage{mwe} % For dummy images 
+\usetikzlibrary{positioning}
+\usepackage{tikz-uml}
+
+\begin{document}
+	\begin{tikzpicture}
+		\umlclass[x=0, y=0, alias=RequestJob, fill=red!10]{server.jobs.RequestJob} {
+			- nodes: list \\
+			- jobID: str \\
+			- cacheHandler: server.cache.CacheHandler \\
+			- neo4jDriver: data.neo4j.DatabaseDriver \\
+			- status: str \\
+			- model: models.Model \\
+		} {
+			+ \_\_init\_\_(): void \\
+			+ run(): void \\
+		}
+	
+		\umlclass[x=0, y=8, alias=JobsHandler, fill=blue!10]{sever.jobs.JobsHandler} {
+			- jobsList: list \\ 
+		} {
+			+ \_\_init\_\_(): void \\
+			+ add\_new\_job(): void \\
+			- get\_new\_jobID(): str \\
+		}
+	
+		\umlclass[x=0, y=-8, alias=CacheHandler, fill=orange!10]{sever.cache.CacheHandler}{
+			- driver: server.cache.PostgresDriver 
+		}{
+			+ \_\_init\_\_(): void \\
+			+ get\_job\_status(): str \\
+			+ get\_running\_jobs(): str \\
+			+ update\_job\_status(): void \\
+			+ stop\_job(): void \\
+			+ add\_node\_result(): void \\
+			+ check\_cached\_valid(): bool \\
+			+ get\_cached\_entry(): list \\
+			+ get\_job\_results(): list 
+		}
+	
+		\umlclass[x=9, y=-8, alias=PostgresDriver, fill=yellow!10]{server.cache.PostgresDriver}{
+			- conn: psycopg2.driver \\
+			- host: str \\
+			- port: int \\
+			- dbName: str \\
+			- user: str \\
+			- password: str
+		}{
+			 + \_\_init\_\_(): void \\
+			+ setup\_database(): void \\
+			+ execute\_SELECT(): list \\
+			+ execute\_INSERT(): void \\
+			+ execute\_UPDATE(): void \\
+			+ execute\_DELETE(): void \\
+			+ close(): void \\
+			+ renew\_connection(): void \\
+		}
+	
+		\umlassoc[thick]{CacheHandler}{PostgresDriver} 
+		\umlassoc[thick]{RequestJob}{CacheHandler} 
+		\umlassoc[thick]{JobsHandler}{RequestJob} 
+	\end{tikzpicture}
+\end{document}

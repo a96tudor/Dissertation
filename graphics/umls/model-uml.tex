@@ -7,14 +7,14 @@
 
 \begin{document}
 	\begin{tikzpicture}
-		\umlclass[x=0, y=0, alias=Model, fill=red!10]{models.Model} {
-			- model: keras.models.Model \\
-			- config: models.config.ModelConfig
-		} {
-			+ \_\_init\_\_(): void \\
-			+ setup(): void \\
-			+ train(): void \\
-			+ predict(): list
-		}
+	\umlclass[x=0, y=0, alias=Model, fill=red!10]{models.Model} {
+		- model: keras.models.Model \\
+		- config: models.config.ModelConfig
+	} {
+		+ \_\_init\_\_(): void \\
+		+ setup(): void \\
+		+ train(): void \\
+		+ predict(): list
+	}
 	\end{tikzpicture}
 \end{document}
