@@ -5,20 +5,20 @@
 	\section{Data analysis} \label{Section 2.1}
 	This section describes the raw data used by CADETS UI and how it is preprocessed in order to be used by the machine learning models.
 	\\ \\
-	The data used by the CADETS UI is stored in a Neo4J\footnotemark[1] graph database. This gives a simple and straightforward representation of the OS-level abstractions we want to store as well as of their relationships.
+	The data used by the CADETS UI is stored in a Neo4J\footnotemark[1] graph database. This gives a simple and straightforward representation of the OS-level abstractions we want to store and of the relationships between them.
 
 	\footnotetext[1]{\textbf{\url{https://neo4j.com/}}}
 	
 	\subsection{Data structure analysis} \label{Section: prep/datastructure}
-	The data is stored as a graph. Here, nodes represent the actors (processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(uuid, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
+	In the database, nodes represent the actors (processes, users) and objects (files, sockets, pipes, machines), each identified by an unique $(uuid, timestamp)$ pair. Multiple nodes can represent the same entity, as it evolves over time. Each node is associated a set of features describing the specific actor/ object. 
 	\\ \\
-	The chart in figure \ref{Figure 2.1.1} shows the log-scale distribution of the nodes' frequencies. The \textit{Meta} nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the \textit{File} nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a biased classifier (i.e. a model that classifies \textit{File} nodes correctly and misclassifies the other node types). 
+	The histogram in figure \ref{Figure 2.1.1} shows the log-scale distribution of the nodes' frequencies. The \textit{Meta} nodes are associated with processes, representing the initial state a specific process was started in. From the chart, we can easily observe that the \textit{File} nodes are the most frequent (representing more than $87.4\%$ of the nodes in the graph). Therefore, we can deduce that the data we are working with is highly unbalanced. We have to keep this in mind when designing our model, in order to avoid having a biased classifier (i.e. a model that classifies \textit{File} nodes correctly and misclassifies the other node types). 
 	\begin{figure}[H]
 		\centering
 
 		\includegraphics[width=0.7\textwidth]{graphics/node-freq-graph}
 		\caption[\textbf{Log-scale node frequency}]{
-			Bar chart showing the log-scale node frequency in a database of $1,402,053$ nodes and $2,090,741$ edges. 
+			Histogram of the log-scale node frequency in a database of $1,402,053$ nodes and $2,090,741$ edges. 
 		}
 		\label{Figure 2.1.1}
 	\end{figure}
@@ -32,7 +32,7 @@
 		}
 		\label{Figure 2.1.2}
 	\end{figure}
-	A number of edges also use a \textit{state} field, providing further information regarding the relationship between two nodes. For example, in the case of a \textit{PROC\_OBJ} edge connecting a File to a Process, the \textit{state} field is used to show whether the Process reads/ writes to the File or if the File is the binary the Process is executed from. \textit{PROC\_OBJ} edges also connect Processes to Sockets. Here, the \textit{state} field can take values such as: \textit{Server} (if the Process uses the Socket to accept new connections), \textit{Client} (if the Process uses to Socket to connect to a different Process that acts as a server - which may or may not be on a different machine)  and \textit{RaW} (if the Process both reads and writes through the Socket).
+	A number of edges also use a \textit{state} field, providing further information regarding the relationship between two nodes. For example, in the case of a \textit{PROC\_OBJ} edge connecting a File to a Process, the \textit{state} field is used to show whether the Process reads/ writes to/ from the File or if the File is the binary the Process is executed from. \textit{PROC\_OBJ} edges also connect Processes to Sockets. Here, the \textit{state} field can take values such as: \textit{Server} (if the Process uses the Socket to accept new connections), \textit{Client} (if the Process uses to Socket to connect to a different Process that acts as a server - which may or may not be on a different machine)  and \textit{RaW} (if the Process both reads and writes through the Socket).
 	\begin{figure}[H]
 		\centering
 		
@@ -43,7 +43,7 @@
 		\label{Figure 2.1.3}
 	\end{figure}
 	 
-	 The graphs resulting from tracing are very sparse, with a number of edges almost equal to the number of nodes. This observation is also sustained by the histogram in Figure \ref{Figure 2.1.3}, where we can observe that most of the nodes have degrees between 0 and 10, while there also are a few nodes with a very high degree (up to $60, 000$). Therefore, the degrees of the nodes encountered in the database follow a power-law distribution\cite{Clauset:2009:PDE:1655787.1655789}.
+	 The graphs resulting from tracing are very sparse, with a number of edges being twice the number of nodes. This observation is also sustained by the histogram in Figure \ref{Figure 2.1.3}, where we can observe that most of the nodes have degrees between 0 and 10, while there also are a few nodes with a very high degree (up to $60, 000$). Therefore, the degrees of the nodes encountered in the database follow a power-law distribution\cite{Clauset:2009:PDE:1655787.1655789}.
 	 
 	\subsection{Ground truths} \label{Section: prep/data/ground-truths}
 	In order to apply appropriate supervised learning algorithms, I had to build a labelled dataset of nodes from the raw data stored in graph format. This required setting a number of \textit{ground truths} of what a node of interest is. 
@@ -62,29 +62,29 @@
 		\end{figure}
 
 		
-		\item \textbf{File read from/ written to by a Processes that also opens a Socket to a different machine: }Here are two cases we need to treat separately. If the Process reads from the File, we face a potential leak of the File's contents. If the Process writes to the File, on the other hand, it might be the case that it corrupts its contents. This is a potential threat especially if it is essential file to the operating system (e.g. any file in \textit{/lib/} or \textit{/bin/}). 
+		\item \textbf{File read from/ written to by a Processes that also opens a Socket to a different machine: }Here are two cases we need to treat separately. If the Process reads from the File, we face a potential leak of the File's contents. If the Process writes to the File, on the other hand, it might be the case that it corrupts its contents. This is a potential threat especially if it is an essential file to the operating system (e.g. any file in \textit{/lib/} or \textit{/bin/}). 
 		
 		\item \textbf{Processes that open a Socket to a different machine: }As mentioned at point 1, any Socket connecting to an external machine is a potential threat. In the same time, any process that opens a Socket to a different machine can be a source of suspicious behaviour, as well. 
 		
 		\item \textbf{Processes that runs suspicious commands: }Here, I define the term of \textit{suspicious command} as being one of the following bash commands:
 		\begin{itemize}
 			\item \textit{sudo} - gives the user running the Process root privilege. An attacker might use this to access OS-sensitive locations. 
-			\item \textit{usermod/ groupmod} - an attacker might make use of these commands to change the running user's privileges and access files that it wouldn't otherwise have access to.
+			\item \textit{usermod/ groupmod} - an attacker might use these commands to change the running user's privileges and access files that it wouldn't otherwise have access to.
 			\item \textit{chmod} - an attacker might use this command to change the access control to a specific file/ directory in order to make it accessible from external sources.
 			\item \textit{rm -rf} - an ill-intended user might use this command to delete files crucial to the system. 
 		\end{itemize}
 	
 		\item \textbf{Processes that write to files in suspicious locations: }Here, I define the term of \textit{suspicious location} as being a location that is essential to the running of the system. These locations include:  \textit{/bin, /etc, /lib, /usr/bin, /usr/lib, /boot, /root, /dev, /etc/pwd}.
 	\end{enumerate}
-	These rules only represent a suitable starting point for the tool implemented here. In practice, though, I would expect my model to be driven by past analyst observations and interactions in the UI. This is a fact I kept in mind when considering various machine learning models, in order to try to create ones that can be updated given analyst input.
+	These rules only represent a suitable starting point for the tool implemented here. In practice, though, I would expect my model to be driven by past analyst observations and interactions in the UI. 
 	\\ \\
-	By setting these ground truths, this project is also exploring whether the various machine learning algorithms implemented in this project can easily learn a number of patterns at the same time.
+	By setting these ground truths, this project also explores whether the various machine learning algorithms implemented can easily learn a number of patterns at the same time.
 	\subsection{Data preprocessing} \label{Section: prep/data/feature-vectors}
 	The implemented machine learning models only look at 3 of the 6 node types: \textbf{File}, \textbf{Process} and \textbf{Socket} nodes. 
 	\\ \\
 	In order to achieve this, I had to define a set of features that would construct the \textit{feature vectors} representing each node. 
 	\\ \\
-	I defined 13 features that would describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node with the closest timestamp value to the one of the Process. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it. Out of these 13 features, 3 are categorical (such as the type of node in question), 6 are binary (i.e. taking a boolean value), 3 are integers (e.g: the version number of the node) and one is real (logarithm of the distance in timestamp to the node's neighbour). Appendix \ref{Appendix: Feature-vector} breaks down these features and explains the reasoning behind them in detail. When using one-hot-encoding for the categorical features, the feature vectors length increases to 23.
+	I defined 13 features that describe each node, in the same time taking into account its 'neighbour'. For a Process, the neighbour is the closest File or Socket connected to it. Here, \textit{'the closest node'} is the node with the closest timestamp value to the one of the Process. Similarly, for a File or Socket, the neighbour is the closest Process node connected to it. Out of these 13 features, 3 are categorical (such as the type of node in question), 6 are binary (i.e. taking a boolean value), 3 are integers (e.g: the version number of the node) and one is real (logarithm of the distance in timestamp to the node's neighbour). Appendix \ref{Appendix: Feature-vector} breaks down these features and explains the reasoning behind them in detail.
 
 	\section{Machine learning models} \label{Section 2.2}
 	This section describes the underlying theory of the machine learning models explored as part of this project and how they can be applied to the data I am working on.
@@ -103,7 +103,7 @@
 		\centering
 		\includegraphics[width=0.7\textwidth]{graphics/nns/multilayer}
 		\caption[Multilayer perceptron]{
-			2-layer MLP.
+			MLP with a hidden layer.
 		}
 		\label{Fig: prep/ml/mlp/mlp}	
 	\end{figure}	
@@ -205,14 +205,14 @@
 	\subsection{Convolutional Neural Networks} 
 	Classically, Convolutional Neural Networks(CNNs) are used in computer vision or natural language processing. One-dimensional CNNs, though, have proven effective for non-spatial data, as well, by identifying relationships between the input features. For this reason, I considered this as a potential model in my project. 
 	\\ \\
-	CNNs use \textbf{convolutional layers} to identify relations between features in a subarea of the feature vector. Following these convolutional layer(s), a CNN normally has a one or more fully connected layers that process the outputs and return a probability distribution over the desired classes.  
+	CNNs use \textbf{convolutional layers} to identify relations between features in a subarea of the feature vector. Following the convolutional layer(s), a CNN normally has one or more fully connected layers that process the outputs and return a probability distribution over the desired classes.  
 	
 	\subsubsection*{Convolutional layer}
 	The main purpose of the convolutional layer is to extract relationships between the features from an input vector. It uses a fix-sized kernel $\mathbf{w} \in \mathbb{R}^k$, that slides over the input vector $\mathbf{x}\in\mathbb{R}^d$ and computes a linear transformation for every patch of size $k$. The output of the convolutional layer is a new vector $\mathbf{y}\in\mathbb{R}^n$, where $n=d - k + 1$. The values of each element in the output vector is given by the equation:
 	\begin{equation}
 		y_i = \mathbf{w}^T\mathbf{x}_{i:i+k-1}
 	\end{equation}
-	where $\mathbf{x}_{a:b}$ represents the sub-vector containing all elements $x_i. \forall a\leq i \geq b$. Figure \ref{Fig: prep/ml/cnn/convoLayer} shows the step-by-step construction of the output vector.
+	where $\mathbf{x}_{a:b}$ represents the sub-vector containing all elements $x_i. \forall a\leq i \leq b$. Figure \ref{Fig: prep/ml/cnn/convoLayer} shows the step-by-step construction of the output vector.
 	\begin{figure}[H]
 		\centering
 		\begin{subfigure}[b]{0.3\linewidth}
@@ -258,7 +258,7 @@
 	In this section, I examine how the probability density functions of the two classes (\textit{SHOW} and \textit{HIDE}) can be estimated from a sequence of labelled training data, using the non-parametric model called Probabilistic Neural Networks (PNNs). PNNs are based on the mathematical notion of \textbf{Parzen windows}, a technique of estimating the probability density functions for a set of classes, given a number of examples from each class. Appendix \ref{Appendix: Parzen/math-background} discusses the mathematical background behind this theoretical concept.
 	
 	\subsubsection{Probabilistic Neural Networks}
- 	Probabilistic Neural Networks (PNNs) are non-parametric classifiers that try to assign a class to an input pattern based on the pre-estimated probability density function of each class. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class in $\mathcal{C}$. 
+ 	Probabilistic Neural Networks (PNNs) are non-parametric classifiers that try to assign a class to an input pattern based on the pre-estimated probability density function of each class. Suppose we want to classify n-dimensional vectors $\mathbf{x} \in \mathbb{R}^n$ into one of $k$ classes in $\mathcal{C}=\{C_1\dots C_k\}$. Based on a training sequence $\mathbf{s} = \{ (\mathbf{x}_1, C), (\mathbf{x}_2, C), \dots ,(\mathbf{x}_m, C)\}$ we estimate the probability density functions $p_i(\mathbf{x}). \forall i \in \{1,2,\dots,k \}$ for every class $C_i \in \mathcal{C}$. 
 
   	\begin{figure}[H]
  		\centering
@@ -267,7 +267,7 @@
  		\label{Fig 2.8}
  	\end{figure}
 	 
-	 Figure \ref{Fig 2.8} shows a PNN architecture that can be used for classification. It consists of $n$ input units, $m$ pattern units and $k$ output units. Each pattern unit forms the inner product of its weight vector $\mathbf{w}$ and the normalized pattern vector $\mathbf{x}$ and outputs $\exp(\frac{\mathbf{w}^T\mathbf{x} - 1}{\sigma^2})$. Each category unit sums up the outputs of the pattern units connected to it. This insures that the activity in each of the category units represents the Parzen-window density estimate using a circular symmetric Gaussian window of covariance $\sigma^2\mathbf{I}$, where $\mathbf{I}$ is the $n\times n$ identity matrix. $\sigma$ is a parameter set by the user and is equal to $\sqrt{2}$ times the width of the effective Gaussian window
+	 Figure \ref{Fig 2.8} shows a PNN architecture that can be used for classification. It consists of $n$ input units, $m$ pattern units and $k$ output units. Each pattern unit forms the inner product of its weight vector $\mathbf{w}$ and the normalized pattern vector $\mathbf{x}$ and outputs $\exp(\frac{\mathbf{w}^T\mathbf{x} - 1}{\sigma^2})$. Each category unit sums up the outputs of the pattern units connected to it. This insures that the activity in each of the category units represents the Parzen-window density estimate using a circular symmetric Gaussian window of covariance $\sigma^2\mathbf{I}$, where $\mathbf{I}$ is the $n\times n$ identity matrix and $\sigma$ is a parameter set by the user.
      \\ \\ 
 	 The weights of the $p^\text{th}$ pattern unit are set as $\mathbf{w}_p = \mathbf{x}_p$, $\forall p \in \{ 1,2,\dots ,m \}$, where $\mathbf{x}_p$ is the normalised $p^\text{th}$ pattern from the training set. In order to classify a new normalized pattern $\mathbf{x}$ we first have to propagate the it through the network. Then, the resulting class will be $C_t$, where:
 	 \begin{equation}
@@ -277,12 +277,12 @@
 	\section{API architecture} \label{Section 2.3}
 	Once I decided how to pre-process the graph data and researched different applicable machine learning models, I looked into solutions to facilitate interaction between the CADETS UI and the classifiers. It is desirable for the filtering tool and the UI to be decoupled, in order to allow each to evolve independently without affecting the other. For this reason, I decided to use a \textit{\textbf{Representational State Transfer (REST) API}}, taking advantage of the HTTP protocol to facilitate communications with the user interface.
 	\\ \\
-	Unlike other similar protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the layered architecture of REST APIs makes them highly modular and scalable. 
+	Unlike other applicable protocols such as SOAP or RPC, REST APIs are not constrained to a single communications format and do not impose any specific parameters order, therefore providing flexibility. REST APIs are stateless, allowing each call to be made independently, containing solely the data necessary to complete itself successfully. Moreover, the layered architecture of REST APIs makes them highly modular and scalable. 
 	\\ \\
 	Being stateless, a REST API might increase the per-request overhead significantly by having to handle many incoming requests. Therefore, it is essential to encourage the caching of intermediate results.
 	
 	\section{Requirements analysis} \label{Section 2.4}
-	Having reviewed the structure of the graph data, the background theory of the machine learning models and the structure that will facilitate interaction with the CADETS UI, the requirements of the project were closely examined. The end goal of this project is to have an independent and modular tool that is able to connect to the CADETS UI and efficiently classify the nodes from a given graph. A breakdown of the project requirements can be visualized in Table \ref{Table 2.2}.
+	Having reviewed the structure of the graph data, the background theory of the machine learning models and the structure that will facilitate interaction with the CADETS UI, the requirements of the project were closely examined. The end goal of this project is to be an independent and modular tool that is able to connect to the CADETS UI and efficiently classify the nodes from a given graph. A breakdown of the project requirements can be visualized in Table \ref{Table 2.2}.
 	\begin{longtable}{|p{.51\textwidth}|p{.13\textwidth} p{.13\textwidth} p{.13\textwidth}|}
 		\textbf{Requirements} & \textbf{Priority} & \textbf{Risk} & \textbf{Difficulty} \\
 		\hline
@@ -321,11 +321,11 @@
 		\caption[Libaries table]{\centering Third-party libraries used as part of this project}
 		\label{Table 2.3}
 	\end{longtable} 
-	The library of key importance here is \textbf{Keras}, a high-level neural networks API using Tensorflow\footnote{\textbf{\url{https://www.tensorflow.org/}}} as backend. It is a modular and easily extensible library that fits the iterative software development methodology adopted in this project.
+	The library of key importance here is \textbf{Keras}, a high-level neural networks API. It is a modular and easily extensible library that fits the iterative software development methodology adopted in this project.
 	\subsection{Development and testing environment}
-	Development work was entirely done on my personal machine -- a 15" Macbook Pro, running MacOS High Sierra. The IDE I chose for this project was \textbf{PyCharm}\footnote{\textbf{\url{https://www.jetbrains.com/pycharm/}}}, due to its high flexibility and support for version control and testing.
+	Development work was entirely done on my personal machine -- a 15" Macbook Pro, running MacOS High Sierra. The IDE I chose for this project was \textbf{PyCharm}\footnote{\textbf{\url{https://www.jetbrains.com/pycharm/}}}, for its high flexibility and support for version control and testing.
 	\\ \\
-	For a project at this scale, version control is crucial. In order to organize my codebase accordingly, I used the \textbf{git} version control environment and synchronized it remotely with the online hosting service \textit{GitHub}\footnote{\textbf{\url{https://github.com}}}. GitHub was also used as the main backup strategy for this project.
+	For a project at this scale, version control is crucial. In order to organize my codebase accordingly, I used the \textbf{git} version control environment and synchronized it remotely with the online hosting service \textit{GitHub}\footnote{\textbf{\url{https://github.com/a96tudor/Part2Project}}}. GitHub was also used as the main backup strategy for this project.
 	\\ \\
 	A separate GitHub repository was used to maintain the \LaTeX \space code for this dissertation. 
 	
