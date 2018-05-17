@@ -1,5 +1,8 @@
-\chapter{Gradient descent} \label{appendix-MLP-opt}
-
+\chapter{Neural Network optimization} \label{appendix-MLP-opt}
+In this appendix, I will outline two algorithms that can be used for optimising a neural network.
+\section{Gradient descent}
+In this section, I will describe the inner-workings of the most popular optimization algorithm for machine learning models, \textbf{gradient descent}. It is an iterative algorithm that finds the optimal weights and biases by minimizing a given loss function $\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b})$.
+\\ \\
 Let $\mathbf{s}$ be a set of training examples $\mathbf{s}=(\mathbf{X}, \mathbf{Y})$, where $\mathbf{X} = [\mathbf{x_1}\dots\mathbf{x_m}]$ is the matrix of training feature vectors, with $\mathbf{x_i}\in\mathbb{R}^n. \forall i \in \{1\dots m\}$ and $\mathbf{Y} = [\mathbf{y_1}\dots\mathbf{y_m}]$ is the matrix representing the corresponding class for every input feature vector, using one-hot encoding. For an input vector $\mathbf{x_i}$ in class $C_t$, the corresponding $\mathbf{y_i}$ will be:
 \begin{equation}
 \centering
@@ -14,7 +17,7 @@ y_{i, j} =
 0 & \text{otherwise}
 \end{cases}
 \end{equation}
-One of the most frequently encountered optimisation algorithms is \textbf{gradient descent}, an iterative algorithm that finds the optimal weights and biases by minimizing a given loss function $\mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b})$. The choice of the loss function depends on the network infrastructure and the problem it is trying to solve. One of the most popular loss functions for classification problems is \textbf{cross-entropy}. It computes the difference between the true output distribution $\mathbf{y}_i$ and the neural network output distribution $\mathbf{\hat{y}}_i$, respectively:
+The choice of the loss function depends on the network infrastructure and the problem it is trying to solve. One of the most popular loss functions for classification problems is \textbf{cross-entropy}. It computes the difference between the true output distribution $\mathbf{y}_i$ and the neural network output distribution $\mathbf{\hat{y}}_i$, respectively:
 \begin{equation}
 \centering
 \mathfrak{L}(\mathbf{x}_i, \mathbf{y}_i, \mathbf{w}, \mathbf{b}) = -\sum_{j=1}^{k}y_{i,j}\log(\hat{y}_{i,j})
@@ -47,3 +50,31 @@ where $\mathbf{w}_t$ and $\mathbf{b}_t$ are the weights and biases at iteration 
 	\item Phase 2: \textbf{Weights and biases updating}, using the equations \ref{Eq 2.13} and \ref{Eq 2.14}
 \end{itemize}
 \textbf{Mini-batch gradient descent} is a variation of gradient descent that splits the training set into small batches $\mathfrak{B}=\{(\mathbf{x}_1, \mathbf{y}_1)\dots(\mathbf{x}_l, \mathbf{y}_l)\}$. Each batch $\mathfrak{B}$ is used to calculate the loss function and update model coefficients. The coefficients update frequency is higher than classical gradient descent which allows for a more robust convergence, avoiding local minima. 
+
+\section{Adam} \label{Appendix: Adam}
+
+Given the gradient of the loss function with respect to the weights over a mini-batch $\mathfrak{B}$ at timestep t: 
+
+\begin{equation}
+\mathbf{g}_t = 
+\sum_{(\mathbf{x}, \mathbf{y} \in \mathfrak{B})}
+\frac{
+	\partial \mathfrak(\mathbf{w}, \mathbf{b}, \mathbf{x}, \mathbf{y})
+}{
+	\partial \mathbf{w}
+},
+\end{equation}
+it computes an exponentially decaying average of previous gradients $\mathbf{m}_t$ and an exponentially decaying average of previous squared gradients $\mathbf{v}_t$:
+\begin{equation}
+\mathbf{m}_t = \beta_1 \mathbf{m}_{t-1} + (1-\beta_1)\mathbf{g}_t 
+\end{equation}
+\begin{equation}
+\mathbf{v}_t = \beta_2 \mathbf{v}_{t-1} + (1-\beta_2)\mathbf{g}_t^2 
+\end{equation}
+where $\beta_1$ and $\beta_2$ are the exponential decaying rates, usually set to $\beta_1 = 0.9$ and $\beta_2 = 0.999$. As $\mathbf{m}_t$ and $\mathbf{v}_t$ are initialised to $0$, the optimiser applies the following corrections: 
+\begin{equation}
+\mathbf{\hat{m}}_t = \frac{\mathbf{m}_t}{1-\beta_1^t}
+\end{equation}
+\begin{equation}
+\mathbf{\hat{v}}_t = \frac{\mathbf{v}_t}{1-\beta_2^t}
+\end{equation}
